@@ -1,28 +1,30 @@
-name: Test Tennis Player Stats
+name: Test Tennis 2026 Stats
 
 on:
   workflow_dispatch:
 
 jobs:
-  test-player-stats:
+  test-2026-stats:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Test Frances Tiafoe match stats
+      - name: Test Frances Tiafoe 2026 stats
         env:
           TENNIS_API_KEY: ${{ secrets.TENNIS_API_KEY }}
         run: |
-          echo "Getting Frances Tiafoe match stats..."
+          echo "Getting Frances Tiafoe 2026 stats..."
 
           curl --fail --silent --show-error \
-            --request GET \
-            --url "https://api.sportsapi365.com/v1/tennis/atp/player/match-stats/29939" \
+            --get \
+            --url "https://api.sportsapi365.com/v1/tennis/profile/29939/match-stat/2026" \
             --header "X-Gravitee-Api-Key: $TENNIS_API_KEY" \
-            --output tiafoe-stats.json
+            --data-urlencode "type=atp" \
+            --data-urlencode "includeAll=true" \
+            --output tiafoe-2026.json
 
           echo ""
-          echo "MATCH STATS RESPONSE:"
+          echo "2026 STATS RESPONSE:"
           echo "--------------------------------"
-          cat tiafoe-stats.json
+          cat tiafoe-2026.json
           echo ""
           echo "--------------------------------"
