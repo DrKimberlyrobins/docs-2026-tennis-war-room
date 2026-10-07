@@ -22,25 +22,39 @@ jobs:
         run: |
           mkdir -p data
 
+          echo "Getting ATP matches..."
+
           curl --fail --silent --show-error \
-            --request GET \
-            --url "https://tennis-api-atp-wta-itf.p.rapidapi.com/tennis/v2/atp/fixtures?pageSize=100&pageNo=1" \
-            --header "X-RapidAPI-Key: $TENNIS_API_KEY" \
-            --header "X-RapidAPI-Host: tennis-api-atp-wta-itf.p.rapidapi.com" \
+            --get \
+            --url "https://api.sportsapi365.com/v1/tennis/atp/fixtures" \
+            --header "X-Gravitee-Api-Key: $TENNIS_API_KEY" \
+            --data-urlencode "filter=PlayerGroup:singles" \
+            --data-urlencode "include=round,tournament" \
+            --data-urlencode "pageSize=100" \
+            --data-urlencode "pageNo=1" \
             --output data/atp-today.json
 
+          echo "Getting WTA matches..."
+
           curl --fail --silent --show-error \
-            --request GET \
-            --url "https://tennis-api-atp-wta-itf.p.rapidapi.com/tennis/v2/wta/fixtures?pageSize=100&pageNo=1" \
-            --header "X-RapidAPI-Key: $TENNIS_API_KEY" \
-            --header "X-RapidAPI-Host: tennis-api-atp-wta-itf.p.rapidapi.com" \
+            --get \
+            --url "https://api.sportsapi365.com/v1/tennis/wta/fixtures" \
+            --header "X-Gravitee-Api-Key: $TENNIS_API_KEY" \
+            --data-urlencode "filter=PlayerGroup:singles" \
+            --data-urlencode "include=round,tournament" \
+            --data-urlencode "pageSize=100" \
+            --data-urlencode "pageNo=1" \
             --output data/wta-today.json
 
-          echo "ATP response:"
-          head -c 500 data/atp-today.json
           echo ""
-          echo "WTA response:"
+          echo "ATP response preview:"
+          head -c 500 data/atp-today.json
+
+          echo ""
+          echo ""
+          echo "WTA response preview:"
           head -c 500 data/wta-today.json
+
           echo ""
 
       - name: Commit updated tennis data
