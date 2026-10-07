@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Doc's 2026 Tennis War Room</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #07111f;
+  color: white;
+}
+
+header {
+  background: linear-gradient(135deg,#0b1d33,#12365c);
+  border-bottom: 3px solid #20d67b;
+  padding: 22px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+header p {
+  color: #9fb3c8;
+  margin: 7px 0 0;
+}
+
+.status-bar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.badge {
+  background: #12283f;
+  border: 1px solid #31506e;
+  padding: 7px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+}
+
+.badge.live {
+  color: #32e889;
+  border-color: #32e889;
+}
+
+.container {
+  width: min(1200px, 95%);
+  margin: 25px auto 50px;
+}
+
+.panel {
+  background: #0d1b2a;
+  border: 1px solid #213b55;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.22);
+}
+
+.panel-title {
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  color: #72e6ad;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+select {
+  width: 100%;
+  padding: 14px;
+  border-radius: 9px;
+  border: 1px solid #31506e;
+  background: #071522;
+  color: white;
+  font-size: 16px;
+}
+
+.match-info {
+  text-align: center;
+  margin-top: 16px;
+  color: #a9bed1;
+  min-height: 20px;
+}
+
+.players {
+  display: grid;
+  grid-template-columns: 1fr 90px 1fr;
+  gap: 15px;
+  align-items: stretch;
+}
+
+.player-card {
+  background: #0b1724;
+  border: 1px solid #28445e;
+  border-radius: 14px;
+  padding: 22px;
+  text-align: center;
+}
+
+.player-label {
+  font-size: 12px;
+  color: #8199ae;
+  letter-spacing: 1px;
+}
+
+.player-name {
+  font-size: 25px;
+  font-weight: bold;
+  margin: 12px 0 7px;
+}
+
+.country {
+  color: #9fb3c8;
+}
+
+.seed {
+  margin-top: 10px;
+  display: inline-block;
+  padding: 5px 9px;
+  background: #182c3e;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.vs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: bold;
+  color: #627d95;
+}
+
+.section-heading {
+  margin: 28px 0 12px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.stat {
+  background: #091725;
+  border: 1px solid #203c56;
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+}
+
+.stat-name {
+  color: #8199ae;
+  font-size: 12px;
+  margin-bottom: 7px;
+}
+
+.stat-value {
+  font-size: 19px;
+  font-weight: bold;
+}
+
+.pending {
+  color: #61788d;
+}
+
+.verdict {
+  text-align: center;
+  padding: 25px;
+}
+
+.verdict-label {
+  color: #7f96aa;
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+.verdict-player {
+  font-size: 30px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.pass {
+  display: inline-block;
+  background: #202c37;
+  color: #c7d0d8;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-weight: bold;
+}
+
+.message {
+  text-align: center;
+  padding: 25px;
+  color: #8ea5b8;
+}
+
+.green {
+  color: #32e889;
+}
+
+.error {
+  color: #ff7d7d;
+}
+
+.footer {
+  text-align: center;
+  color: #577086;
+  font-size: 12px;
+  margin-top: 30px;
+}
+
+@media(max-width:700px) {
+  .players {
+    grid-template-columns: 1fr;
+  }
+
+  .vs {
+    padding: 3px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  header h1 {
+    font-size: 25px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🎾 Doc's 2026 Tennis War Room</h1>
+  <p>Player Strength • Surface • Form • Matchup • Market</p>
+
+  <div class="status-bar">
+    <span class="badge live">● TENNIS FEED</span>
+    <span class="badge" id="matchCount">Loading matches...</span>
+    <span class="badge">PROVE IT MODE</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="panel">
+    <div class="panel-title">TODAY & UPCOMING MATCHES</div>
+
+    <select id="matchSelect">
+      <option value="">Loading ATP & WTA matches...</option>
+    </select>
+
+    <div class="match-info" id="matchInfo"></div>
+  </div>
+
+
+  <div class="panel">
+
+    <div class="players">
+
+      <div class="player-card">
+        <div class="player-label">PLAYER A</div>
+        <div class="player-name" id="player1Name">Select a Match</div>
+        <div class="country" id="player1Country">—</div>
+        <div class="seed" id="player1Seed">Seed: —</div>
+      </div>
+
+      <div class="vs">VS</div>
+
+      <div class="player-card">
+        <div class="player-label">PLAYER B</div>
+        <div class="player-name" id="player2Name">Select a Match</div>
+        <div class="country" id="player2Country">—</div>
+        <div class="seed" id="player2Seed">Seed: —</div>
+      </div>
+
+    </div>
+
+
+    <div class="section-heading">Player Strength</div>
+
+    <div class="stats-grid">
+
+      <div class="stat">
+        <div class="stat-name">RANKING</div>
+        <div class="stat-value pending">Pending</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-name">OVERALL ELO</div>
+        <div class="stat-value pending">Pending</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-name">SURFACE ELO</div>
+        <div class="stat-value pending">Pending</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-name">2026 RECORD</div>
+        <div class="stat-value pending">Pending</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-name">SURFACE RECORD</div>
+        <div class="stat-value pending">Pending</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-name">LAST 10</div>
+        <div class="stat-value pending">Pending</div>
+      </div>
+
+    </div>
+
+
+    <div class="section-heading">Matchup</div>
+
+    <div class="stats-grid">
+
+      <div class="stat">
+        <div class="stat-name">HEAD TO HEAD</div>
+        <div class="stat-value pending">Pending</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-name">SERVE EDGE</div>
+        <div class="stat-value pending">Pending</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-name">RETURN EDGE</div>
+        <div class="stat-value pending">Pending</div>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="panel verdict">
+
+    <div class="verdict-label">WHO IS THE BETTER PLAYER?</div>
+
+    <div class="verdict-player" id="betterPlayer">
+      Waiting for player data
+    </div>
+
+    <div class="pass" id="qualification">
+      NOT YET GRADED
+    </div>
+
+  </div>
+
+
+  <div class="panel">
+
+    <div class="panel-title">KALSHI MARKET</div>
+
+    <div class="stats-grid">
+
+      <div class="stat">
+        <div class="stat-name">WAR ROOM PROBABILITY</div>
+        <div class="stat-value pending">Pending</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-name">KALSHI PRICE</div>
+        <div class="stat-value pending">Pending</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-name">MARKET EDGE</div>
+        <div class="stat-value pending">Pending</div>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="footer">
+    Ranking alone does not qualify a play • Conflicts = PASS • No edge = No play
+  </div>
+
+</div>
+
+
+<script>
+
+let allMatches = [];
+
+async function loadTennisData() {
+
+  const selector = document.getElementById("matchSelect");
+
+  try {
+
+    const [atpResponse, wtaResponse] = await Promise.all([
+      fetch("data/atp-today.json?cache=" + Date.now()),
+      fetch("data/wta-today.json?cache=" + Date.now())
+    ]);
+
+    if (!atpResponse.ok || !wtaResponse.ok) {
+      throw new Error("Could not load tennis JSON files.");
+    }
+
+    const atpJSON = await atpResponse.json();
+    const wtaJSON = await wtaResponse.json();
+
+    const atpMatches = Array.isArray(atpJSON.data)
+      ? atpJSON.data.map(match => ({
+          ...match,
+          tour: "ATP"
+        }))
+      : [];
+
+    const wtaMatches = Array.isArray(wtaJSON.data)
+      ? wtaJSON.data.map(match => ({
+          ...match,
+          tour: "WTA"
+        }))
+      : [];
+
+    allMatches = [...atpMatches, ...wtaMatches];
+
+    allMatches.sort((a,b) => {
+      const dateA = new Date(a.startTime || a.date || 0);
+      const dateB = new Date(b.startTime || b.date || 0);
+      return dateA - dateB;
+    });
+
+    buildDropdown();
+
+    document.getElementById("matchCount").textContent =
+      allMatches.length + " MATCHES LOADED";
+
+  }
+
+  catch(error) {
+
+    console.error(error);
+
+    selector.innerHTML =
+      '<option>Unable to load tennis data</option>';
+
+    document.getElementById("matchCount").textContent =
+      "DATA ERROR";
+
+    document.getElementById("matchCount").classList.add("error");
+  }
+
+}
+
+
+function buildDropdown() {
+
+  const selector = document.getElementById("matchSelect");
+
+  selector.innerHTML =
+    '<option value="">Select a tennis matchup...</option>';
+
+  allMatches.forEach((match,index) => {
+
+    if (!match.player1 || !match.player2) return;
+
+    const option = document.createElement("option");
+
+    option.value = index;
+
+    const p1 = match.player1.name || "Player 1";
+    const p2 = match.player2.name || "Player 2";
+
+    const tournament =
+      match.tournament?.name || "Tournament";
+
+    option.textContent =
+      `[${match.tour}] ${p1} vs ${p2} — ${tournament}`;
+
+    selector.appendChild(option);
+
+  });
+
+}
+
+
+function formatDate(value) {
+
+  if (!value) return "Time unavailable";
+
+  const date = new Date(value);
+
+  if (isNaN(date.getTime())) return value;
+
+  return date.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+
+}
+
+
+function showMatch(index) {
+
+  const match = allMatches[index];
+
+  if (!match) return;
+
+  const p1 = match.player1 || {};
+  const p2 = match.player2 || {};
+
+  document.getElementById("player1Name").textContent =
+    p1.name || "Player 1";
+
+  document.getElementById("player2Name").textContent =
+    p2.name || "Player 2";
+
+  document.getElementById("player1Country").textContent =
+    p1.countryAcr || "—";
+
+  document.getElementById("player2Country").textContent =
+    p2.countryAcr || "—";
+
+  document.getElementById("player1Seed").textContent =
+    "Seed: " + (match.seed1 ?? "—");
+
+  document.getElementById("player2Seed").textContent =
+    "Seed: " + (match.seed2 ?? "—");
+
+
+  const tournament =
+    match.tournament?.name || "Tournament unavailable";
+
+  const round =
+    match.round?.name || "Round unavailable";
+
+  const start =
+    formatDate(match.startTime || match.date);
+
+  document.getElementById("matchInfo").innerHTML =
+    `<strong>${match.tour}</strong> • ${tournament} • ${round} • ${start}`;
+
+
+  document.getElementById("betterPlayer").textContent =
+    "Player analysis pending";
+
+  document.getElementById("qualification").textContent =
+    "NOT YET GRADED";
+}
+
+
+document
+  .getElementById("matchSelect")
+  .addEventListener("change", function() {
+
+    if (this.value === "") return;
+
+    showMatch(Number(this.value));
+
+  });
+
+
+loadTennisData();
+
+</script>
+
+</body>
+</html>
