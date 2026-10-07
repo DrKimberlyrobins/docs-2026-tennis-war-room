@@ -1,1088 +1,430 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Doc's 2026 Tennis War Room</title>
-
 <style>
 *{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:Arial,Helvetica,sans-serif;
-  background:#07111f;
-  color:white;
-}
-
-header{
-  background:linear-gradient(135deg,#0b1d33,#12365c);
-  border-bottom:3px solid #20d67b;
-  padding:22px;
-  text-align:center;
-}
-
-header h1{margin:0;font-size:32px}
-header p{color:#9fb3c8;margin:7px 0 0}
-
-.status-bar{
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:14px;
-}
-
-.badge{
-  background:#12283f;
-  border:1px solid #31506e;
-  padding:7px 12px;
-  border-radius:20px;
-  font-size:13px;
-}
-
-.badge.live{
-  color:#32e889;
-  border-color:#32e889;
-}
-
-.container{
-  width:min(1200px,95%);
-  margin:25px auto 50px;
-}
-
-.panel{
-  background:#0d1b2a;
-  border:1px solid #213b55;
-  border-radius:14px;
-  padding:20px;
-  margin-bottom:18px;
-  box-shadow:0 8px 22px rgba(0,0,0,.22);
-}
-
-.panel-title{
-  font-size:14px;
-  letter-spacing:1.5px;
-  color:#72e6ad;
-  font-weight:bold;
-  margin-bottom:12px;
-}
-
-select{
-  width:100%;
-  padding:14px;
-  border-radius:9px;
-  border:1px solid #31506e;
-  background:#071522;
-  color:white;
-  font-size:16px;
-}
-
-.match-info{
-  text-align:center;
-  margin-top:16px;
-  color:#a9bed1;
-  min-height:20px;
-}
-
-.players{
-  display:grid;
-  grid-template-columns:1fr 90px 1fr;
-  gap:15px;
-  align-items:stretch;
-}
-
-.player-card{
-  background:#0b1724;
-  border:1px solid #28445e;
-  border-radius:14px;
-  padding:22px;
-  text-align:center;
-}
-
-.player-card.edge{
-  border:2px solid #32e889;
-  box-shadow:0 0 18px rgba(50,232,137,.18);
-}
-
-.player-label{
-  font-size:12px;
-  color:#8199ae;
-  letter-spacing:1px;
-}
-
-.player-name{
-  font-size:25px;
-  font-weight:bold;
-  margin:12px 0 7px;
-}
-
-.country{color:#9fb3c8}
-
-.seed{
-  margin-top:10px;
-  display:inline-block;
-  padding:5px 9px;
-  background:#182c3e;
-  border-radius:6px;
-  font-size:12px;
-}
-
-.vs{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
-  font-weight:bold;
-  color:#627d95;
-}
-
-.section-heading{
-  margin:28px 0 12px;
-  font-size:18px;
-  font-weight:bold;
-}
-
-.compare-grid{
-  display:grid;
-  grid-template-columns:1fr 180px 1fr;
-  gap:10px;
-  align-items:stretch;
-}
-
-.metric-value,
-.metric-name{
-  background:#091725;
-  border:1px solid #203c56;
-  padding:13px;
-  min-height:54px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.metric-value{
-  font-size:17px;
-  font-weight:bold;
-}
-
-.metric-name{
-  color:#8199ae;
-  font-size:11px;
-  letter-spacing:.6px;
-  text-align:center;
-}
-
-.good{
-  color:#32e889;
-  border-color:#32e889;
-}
-
-.pending{color:#61788d}
-
-.verdict{
-  text-align:center;
-  padding:25px;
-}
-
-.verdict-label{
-  color:#7f96aa;
-  font-size:13px;
-  letter-spacing:2px;
-}
-
-.verdict-player{
-  font-size:30px;
-  font-weight:bold;
-  margin:10px 0;
-}
-
-.pass{
-  display:inline-block;
-  background:#202c37;
-  color:#c7d0d8;
-  padding:8px 18px;
-  border-radius:20px;
-  font-weight:bold;
-}
-
-.qualified{
-  background:#123d2a;
-  color:#32e889;
-  border:1px solid #32e889;
-}
-
-.note{
-  margin-top:12px;
-  color:#8199ae;
-  font-size:13px;
-}
-
-.stats-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:10px;
-}
-
-.stat{
-  background:#091725;
-  border:1px solid #203c56;
-  border-radius:10px;
-  padding:14px;
-  text-align:center;
-}
-
-.stat-name{
-  color:#8199ae;
-  font-size:12px;
-  margin-bottom:7px;
-}
-
-.stat-value{
-  font-size:19px;
-  font-weight:bold;
-}
-
-.footer{
-  text-align:center;
-  color:#577086;
-  font-size:12px;
-  margin-top:30px;
-}
-
-@media(max-width:700px){
-  .players{grid-template-columns:1fr}
-  .vs{padding:3px}
-  .compare-grid{grid-template-columns:1fr 110px 1fr}
-  .stats-grid{grid-template-columns:1fr}
-  header h1{font-size:25px}
+body{margin:0;background:#07111f;color:#fff;font-family:Arial,sans-serif}
+header{text-align:center;padding:25px 12px;background:linear-gradient(135deg,#0b1d33,#12365c);border-bottom:3px solid #20d67b}
+h1{margin:0 0 9px;font-size:30px}
+.subtitle{color:#a9bed1}
+.badges{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:15px}
+.badge{padding:7px 12px;border:1px solid #31506e;border-radius:20px;background:#12283f;font-size:12px}
+.green{color:#32e889}
+main{max-width:1150px;margin:22px auto;padding:0 15px}
+.panel{background:#0d1b2a;border:1px solid #213b55;border-radius:14px;padding:20px;margin-bottom:18px}
+.heading{font-size:13px;letter-spacing:1px;color:#72e6ad;font-weight:bold;margin-bottom:13px}
+input,select{width:100%;padding:13px;background:#071522;color:#fff;border:1px solid #31506e;border-radius:9px;font-size:15px}
+input{margin-bottom:12px}
+select{min-height:185px}
+optgroup{color:#72e6ad;background:#102237;font-weight:bold}
+option{color:white;background:#071522;padding:7px}
+.details{text-align:center;color:#a9bed1;margin-top:15px;line-height:1.6}
+.players{display:grid;grid-template-columns:1fr 65px 1fr;gap:12px;align-items:center}
+.player{padding:20px 10px;text-align:center;border:1px solid #28445e;border-radius:12px;background:#091725}
+.player.edge{border:2px solid #32e889}
+.name{font-size:23px;font-weight:bold;margin:12px 0}
+.muted{color:#9fb3c8;font-size:13px}
+.vs{text-align:center;font-size:22px;color:#8296a8;font-weight:bold}
+.section{font-size:18px;font-weight:bold;margin:24px 0 13px}
+.compare{display:grid;grid-template-columns:1fr 160px 1fr;gap:8px}
+.value,.metric{min-height:52px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;background:#091725;border:1px solid #203c56}
+.value{font-weight:bold}
+.metric{font-size:11px;color:#8199ae}
+.value.good{color:#32e889;border-color:#32e889}
+.pending{color:#8199ae}
+.verdict{text-align:center;padding:28px 12px}
+.verdict h2{font-size:27px;margin:12px 0}
+.status{display:inline-block;padding:9px 17px;border-radius:20px;background:#202c37;color:#c7d0d8;font-size:13px;font-weight:bold}
+.status.positive{border:1px solid #32e889;color:#32e889;background:#123d2a}
+.note{color:#9fb3c8;font-size:13px;margin-top:14px;line-height:1.6}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.card{padding:17px;text-align:center;border:1px solid #203c56;border-radius:10px;background:#091725}
+.card div:first-child{color:#8199ae;font-size:12px;margin-bottom:10px}
+footer{text-align:center;color:#8199ae;font-size:12px;padding:10px 0 30px}
+@media(max-width:650px){
+h1{font-size:24px}
+.players{grid-template-columns:1fr}
+.compare{grid-template-columns:1fr 110px 1fr}
+.metric{font-size:10px}
+.cards{grid-template-columns:1fr}
 }
 </style>
 </head>
-
 <body>
-
 <header>
-  <h1>🎾 Doc's 2026 Tennis War Room</h1>
-  <p>Player Strength • Form • Serve • Return • Matchup • Market</p>
-
-  <div class="status-bar">
-    <span class="badge live">● TENNIS FEED</span>
-    <span class="badge" id="matchCount">Loading matches...</span>
-    <span class="badge" id="cacheCount">Loading player cache...</span>
-    <span class="badge">PROVE IT MODE</span>
-  </div>
+<h1>🎾 Doc's 2026 Tennis War Room</h1>
+<div class="subtitle">Player Strength • Form • Serve • Return • Matchup • Market</div>
+<div class="badges">
+<span class="badge green">● TENNIS FEED</span>
+<span class="badge" id="matchCount">Loading matches...</span>
+<span class="badge" id="cacheCount">Loading cache...</span>
+<span class="badge">PROVE IT MODE</span>
+</div>
 </header>
 
-<div class="container">
+<main>
+<section class="panel">
+<div class="heading">SEARCH TODAY & UPCOMING MATCHES</div>
+<input id="matchSearch" type="search" placeholder="🔎 Type a player name or tournament..." autocomplete="off">
+<select id="matchSelect" size="9" aria-label="Tennis match results">
+<option>Loading matches...</option>
+</select>
+<div class="details" id="matchInfo">Select a match to begin.</div>
+</section>
 
-  <div class="panel">
-    <div class="panel-title">TODAY & UPCOMING MATCHES</div>
+<section class="panel">
+<div class="players">
+<div class="player" id="player1Card">
+<div class="muted">PLAYER A</div>
+<div class="name" id="player1Name">Select a Match</div>
+<div class="muted" id="player1Country">—</div>
+<div class="muted" id="player1Seed">Seed: —</div>
+</div>
+<div class="vs">VS</div>
+<div class="player" id="player2Card">
+<div class="muted">PLAYER B</div>
+<div class="name" id="player2Name">Select a Match</div>
+<div class="muted" id="player2Country">—</div>
+<div class="muted" id="player2Seed">Seed: —</div>
+</div>
+</div>
 
-function matchDateTime(match) {
-  const datePart = match.date || "";
-  const timePart = match.startTime || "";
+<div class="section">Verified Player Comparison</div>
+<div class="compare" id="comparison"></div>
 
-  // If startTime already contains a full date
-  if (timePart && timePart.includes("-")) {
-    const d = new Date(timePart);
-    if (!isNaN(d)) return d;
-  }
+<div class="section">Not Yet Proven</div>
+<div class="cards">
+<div class="card"><div>OVERALL ELO</div><strong class="pending">Pending</strong></div>
+<div class="card"><div>SURFACE ELO</div><strong class="pending">Pending</strong></div>
+<div class="card"><div>SURFACE RECORD</div><strong class="pending">Pending</strong></div>
+</div>
+</section>
 
-  // Combine separate API date + time fields
-  if (datePart) {
-    const cleanDate = String(datePart).split("T")[0];
+<section class="panel verdict">
+<div class="muted">WHO IS THE BETTER PLAYER?</div>
+<h2 id="betterPlayer">Select a matchup</h2>
+<span class="status" id="qualification">NOT YET GRADED</span>
+<div class="note" id="verdictNote">Only verified data influences the comparison.</div>
+</section>
 
-    let cleanTime = "00:00:00";
+<section class="panel">
+<div class="heading">KALSHI MARKET — NEXT PHASE</div>
+<div class="cards">
+<div class="card"><div>WAR ROOM PROBABILITY</div><strong class="pending">Pending</strong></div>
+<div class="card"><div>KALSHI PRICE</div><strong class="pending">Pending</strong></div>
+<div class="card"><div>MARKET EDGE</div><strong class="pending">Pending</strong></div>
+</div>
+</section>
+<footer>Ranking alone never qualifies a play • Conflicts = PASS • No edge = No play</footer>
+</main>
 
-    if (timePart) {
-      if (String(timePart).includes("T")) {
-        const d = new Date(timePart);
-        if (!isNaN(d)) return d;
-      } else {
-        cleanTime = String(timePart);
-      }
-    }
+<script>
+"use strict";
 
-    const d = new Date(`${cleanDate}T${cleanTime}`);
+let allMatches=[];
+let playerCache={};
 
-    if (!isNaN(d)) return d;
-  }
+const $=id=>document.getElementById(id);
 
-  return new Date(8640000000000000);
+function unwrap(obj){
+  return obj && typeof obj==="object" && "data" in obj ? obj.data : obj;
 }
 
-
-function dateHeading(match) {
-  const d = matchDateTime(match);
-
-  if (isNaN(d)) return "DATE UNKNOWN";
-
-  return d.toLocaleDateString([], {
-    weekday: "short",
-    month: "short",
-    day: "numeric"
-  }).toUpperCase();
+function numeric(v){
+  if(v===null||v===undefined||v==="")return null;
+  const n=Number(v);
+  return Number.isFinite(n)?n:null;
 }
 
+function percentage(obj){
+  if(!obj||typeof obj!=="object")return null;
+  const value=numeric(obj.value);
+  const count=numeric(obj.count);
+  if(value===null||count===null||count<=0)return null;
+  const pct=value/count*100;
+  return pct>=0&&pct<=100?pct:null;
+}
 
-function buildDropdown(searchText = "") {
+function metrics(player){
+  if(!player)return null;
+  const profile=unwrap(player.profile)||{};
+  const season=unwrap(player.season2026)||{};
+  const service=season.serviceStats||{};
+  const bpServe=season.breakPointsServe||{};
+  const bpReturn=season.breakPointsRtn||{};
 
-  const selector = document.getElementById("matchSelect");
-
-  selector.innerHTML = "";
-
-  const search = searchText.trim().toLowerCase();
-
-  // TRUE DATE → TIME SORT
-  allMatches.sort((a,b) =>
-    matchDateTime(a) - matchDateTime(b)
+  const rank=numeric(
+    profile.curRank?.position ??
+    profile.currentRank?.position ??
+    profile.currentRank ??
+    profile.ranking?.position
   );
 
-  let lastDate = "";
-  let shown = 0;
+  const rawForm=Array.isArray(profile.form)?profile.form:[];
+  const form=rawForm.map(v=>String(v).toLowerCase())
+    .filter(v=>v==="w"||v==="l").slice(-10);
+  const wins=form.filter(v=>v==="w").length;
 
-  allMatches.forEach((match,index) => {
+  return {
+    rank:rank&&rank>0?rank:null,
+    form:form.length>=5?{wins,losses:form.length-wins,total:form.length}:null,
+    first:percentage(service.winningOnFirstServe),
+    second:percentage(service.winningOnSecondServe),
+    saved:percentage(bpServe.breakPointSave),
+    converted:percentage(bpReturn.breakPointWon)
+  };
+}
 
-    if (!match.player1 || !match.player2) return;
+function getPlayer(match,side){
+  const id=match[side]?.id??match[side+"Id"];
+  if(id===undefined||id===null)return null;
+  return playerCache[`${match.tour.toLowerCase()}:${id}`]||null;
+}
 
-    const p1 = match.player1.name || "Player 1";
-    const p2 = match.player2.name || "Player 2";
+function parseMatchDate(match){
+  const rawDate=String(match.date||"");
+  const rawTime=String(match.startTime||"");
+  if(!rawDate&&!rawTime)return null;
 
-    const searchable =
-      `${p1} ${p2} ${match.tour} ${match.tournament?.name || ""}`
-      .toLowerCase();
+  // Prefer the fixture's calendar date. Only use a complete
+  // startTime timestamp when no separate date is supplied.
+  if(!rawDate&&rawTime.includes("T")){
+    const d=new Date(rawTime);
+    return Number.isNaN(d.getTime())?null:d;
+  }
 
-    if (search && !searchable.includes(search)) return;
+  const day=rawDate.slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(day))return null;
 
-    const heading = dateHeading(match);
+  let clock="00:00:00";
+  if(/^\d{1,2}:\d{2}/.test(rawTime)){
+    clock=rawTime;
+  }else if(rawTime.includes("T")){
+    const candidate=rawTime.split("T")[1];
+    if(/^\d{2}:\d{2}/.test(candidate))clock=candidate.slice(0,8);
+  }
 
-    if (heading !== lastDate) {
+  // Keep the source's date intact; fixture timezone is not
+  // verified, so displayed clock times are provisional.
+  const d=new Date(`${day}T${clock}`);
+  return Number.isNaN(d.getTime())?null:d;
+}
 
-      const group = document.createElement("optgroup");
-      group.label = heading;
-      group.dataset.date = heading;
+function dateKey(match){
+  const raw=String(match.date||"");
+  if(/^\d{4}-\d{2}-\d{2}/.test(raw))return raw.slice(0,10);
+  const d=parseMatchDate(match);
+  if(!d)return "Unknown date";
+  return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),
+    String(d.getDate()).padStart(2,"0")].join("-");
+}
 
-      selector.appendChild(group);
+function dateLabel(key){
+  if(key==="Unknown date")return key;
+  const parts=key.split("-").map(Number);
+  const d=new Date(parts[0],parts[1]-1,parts[2]);
+  return d.toLocaleDateString("en-US",{
+    weekday:"short",month:"short",day:"numeric",year:"numeric"
+  });
+}
 
-      lastDate = heading;
+function buildDropdown(){
+  const select=$("matchSelect");
+  const query=$("matchSearch").value.trim().toLowerCase();
+  select.replaceChildren();
+
+  let group=null;
+  let previousDate=null;
+  let shown=0;
+
+  allMatches.forEach((match,index)=>{
+    const a=match.player1?.name||"Player 1";
+    const b=match.player2?.name||"Player 2";
+    const tournament=match.tournament?.name||"Tournament";
+    const searchable=`${a} ${b} ${tournament} ${match.tour}`.toLowerCase();
+
+    if(query&&!searchable.includes(query))return;
+
+    const day=dateKey(match);
+    if(day!==previousDate){
+      group=document.createElement("optgroup");
+      group.label=dateLabel(day);
+      select.appendChild(group);
+      previousDate=day;
     }
 
-    const groups = selector.querySelectorAll("optgroup");
-    const currentGroup = groups[groups.length - 1];
+    const ready=!!getPlayer(match,"player1")&&!!getPlayer(match,"player2");
+    const time=parseMatchDate(match);
+    const clock=time&&match.startTime
+      ?time.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})
+      :"Time TBD";
 
-    const option = document.createElement("option");
-
-    option.value = index;
-
-    const tournament =
-      match.tournament?.name || "Tournament";
-
-    const p1Cached =
-      !!getCachedPlayer(match,match.player1);
-
-    const p2Cached =
-      !!getCachedPlayer(match,match.player2);
-
-    const ready =
-      p1Cached && p2Cached ? "✓ " : "";
-
-    const time = matchDateTime(match);
-
-    let timeText = "";
-
-    if (!isNaN(time)) {
-      timeText = time.toLocaleTimeString([], {
-        hour:"numeric",
-        minute:"2-digit"
-      });
-    }
-
-    option.textContent =
-      `${ready}${timeText} • [${match.tour}] ${p1} vs ${p2} — ${tournament}`;
-
-    currentGroup.appendChild(option);
-
+    const option=document.createElement("option");
+    option.value=String(index);
+    option.textContent=`${ready?"✓ ":""}${clock} • [${match.tour}] ${a} vs ${b} — ${tournament}`;
+    group.appendChild(option);
     shown++;
   });
 
-  if (shown === 0) {
-
-    const option = document.createElement("option");
-
-    option.textContent =
-      search
-        ? `No matches found for "${searchText}"`
-        : "No matches available";
-
-    option.disabled = true;
-
-    selector.appendChild(option);
+  if(!shown){
+    const option=document.createElement("option");
+    option.textContent="No matching fixtures";
+    option.disabled=true;
+    select.appendChild(option);
   }
 }
 
-function numberValue(value) {
-  if (value === null || value === undefined) return null;
-
-  if (typeof value === "number") return value;
-
-  if (typeof value === "string") {
-    const n = Number(value);
-    return Number.isFinite(n) ? n : null;
-  }
-
-  if (typeof value === "object") {
-    for (const key of [
-      "value","count","won","wins","saved",
-      "pointsWon","total","amount","number"
-    ]) {
-      if (value[key] !== undefined) {
-        const n = Number(value[key]);
-        if (Number.isFinite(n)) return n;
-      }
-    }
-  }
-
-  return null;
-}
-
-function ratioPercent(won, total) {
-  const w = numberValue(won);
-  const t = numberValue(total);
-
-  if (w === null || t === null || t <= 0) return null;
-
-  return (w / t) * 100;
-}
-
-function findPairPercent(obj, possibleWonKeys, possibleTotalKeys) {
-  if (!obj || typeof obj !== "object") return null;
-
-  let won = null;
-  let total = null;
-
-  for (const key of possibleWonKeys) {
-    if (obj[key] !== undefined) {
-      won = numberValue(obj[key]);
-      if (won !== null) break;
-    }
-  }
-
-  for (const key of possibleTotalKeys) {
-    if (obj[key] !== undefined) {
-      total = numberValue(obj[key]);
-      if (total !== null) break;
-    }
-  }
-
-  if (won === null || total === null || total <= 0) return null;
-
-  return (won / total) * 100;
-}
-
-function getRanking(profile) {
-  if (!profile) return null;
-
-  const candidates = [
-    profile.currentRank?.position,
-    profile.currentRanking?.position,
-    profile.ranking?.position,
-    profile.ranking,
-    profile.rank
-  ];
-
-  for (const value of candidates) {
-    const n = numberValue(value);
-    if (n !== null && n > 0) return n;
-  }
-
-  return null;
-}
-
-function getForm(profile) {
-  if (!profile) return null;
-
-  let form = profile.form;
-
-  if (!form) return null;
-
-  if (Array.isArray(form)) {
-    form = form
-      .map(x => typeof x === "string" ? x : (x.result || x.status || ""))
-      .join("");
-  }
-
-  if (typeof form === "object") {
-    form = form.results || form.form || form.last10 || "";
-  }
-
-  if (Array.isArray(form)) form = form.join("");
-
-  if (typeof form !== "string") return null;
-
-  const letters = form.toUpperCase().match(/[WL]/g) || [];
-
-  if (!letters.length) return null;
-
-  const last10 = letters.slice(-10);
-  const wins = last10.filter(x => x === "W").length;
-  const losses = last10.filter(x => x === "L").length;
-
-  return {
-    wins,
-    losses,
-    total: last10.length,
-    text: `${wins}-${losses}`
-  };
-}
-
-function getSeasonMetrics(stats) {
-  stats = unwrap(stats) || {};
-
-  const service =
-    stats.serviceStats ||
-    stats.service ||
-    {};
-
-  const returns =
-    stats.returnStats ||
-    stats.rtnStats ||
-    stats.return ||
-    {};
-
-  const bpServe =
-    stats.breakPointsServe ||
-    stats.breakPointsServeStats ||
-    {};
-
-  const bpReturn =
-    stats.breakPointsRtn ||
-    stats.breakPointsRtnStats ||
-    stats.breakPointsReturn ||
-    {};
-
-  let firstServeWon = findPairPercent(
-    service,
-    [
-      "firstServePointsWon",
-      "firstServeWon",
-      "firstServicePointsWon"
-    ],
-    [
-      "firstServePoints",
-      "firstServePointsPlayed",
-      "firstServeTotal",
-      "firstServicePoints"
-    ]
-  );
-
-  let secondServeWon = findPairPercent(
-    service,
-    [
-      "secondServePointsWon",
-      "secondServeWon",
-      "secondServicePointsWon"
-    ],
-    [
-      "secondServePoints",
-      "secondServePointsPlayed",
-      "secondServeTotal",
-      "secondServicePoints"
-    ]
-  );
-
-  let breakSaved = findPairPercent(
-    bpServe,
-    [
-      "breakPointsSaved",
-      "saved",
-      "breakPointSaved"
-    ],
-    [
-      "breakPointsFaced",
-      "faced",
-      "breakPointFaced"
-    ]
-  );
-
-  let breakWon = findPairPercent(
-    bpReturn,
-    [
-      "breakPointsWon",
-      "won",
-      "breakPointWon"
-    ],
-    [
-      "breakPointChances",
-      "breakPointsChances",
-      "chances",
-      "breakPointsFaced"
-    ]
-  );
-
-  /*
-    Some SportsAPI365 fields can be returned as nested
-    { won: x, total: y } objects. Check those too.
-  */
-
-  const firstNested =
-    service.firstServePointsWon ||
-    service.firstServeWon;
-
-  if (firstServeWon === null && typeof firstNested === "object") {
-    firstServeWon = ratioPercent(
-      firstNested.won ?? firstNested.value,
-      firstNested.total ?? firstNested.attempts
-    );
-  }
-
-  const secondNested =
-    service.secondServePointsWon ||
-    service.secondServeWon;
-
-  if (secondServeWon === null && typeof secondNested === "object") {
-    secondServeWon = ratioPercent(
-      secondNested.won ?? secondNested.value,
-      secondNested.total ?? secondNested.attempts
-    );
-  }
-
-  return {
-    firstServeWon,
-    secondServeWon,
-    breakSaved,
-    breakWon
-  };
-}
-
-function percentText(value) {
-  return value === null || !Number.isFinite(value)
-    ? "Pending"
-    : `${value.toFixed(1)}%`;
-}
-
-function resetMetricStyle(id) {
-  const el = document.getElementById(id);
-  el.classList.remove("good");
-  el.classList.add("pending");
-}
-
-function setMetric(id, text) {
-  const el = document.getElementById(id);
-  el.textContent = text;
-
-  if (text !== "Pending" && text !== "—") {
-    el.classList.remove("pending");
-  } else {
-    el.classList.add("pending");
-  }
-}
-
-function markBetter(id) {
-  const el = document.getElementById(id);
-  el.classList.add("good");
-  el.classList.remove("pending");
-}
-
-function compareLowerBetter(a, b, idA, idB, minimumDifference = 1) {
-  if (a === null || b === null) return 0;
-
-  const diff = Math.abs(a - b);
-  if (diff < minimumDifference) return 0;
-
-  if (a < b) {
-    markBetter(idA);
-    return 1;
-  }
-
-  markBetter(idB);
-  return -1;
-}
-
-function compareHigherBetter(a, b, idA, idB, minimumDifference = 2) {
-  if (a === null || b === null) return 0;
-
-  const diff = Math.abs(a - b);
-  if (diff < minimumDifference) return 0;
-
-  if (a > b) {
-    markBetter(idA);
-    return 1;
-  }
-
-  markBetter(idB);
-  return -1;
-}
-
-function getCachedPlayer(match, player) {
-  if (!match || !player || player.id === undefined) return null;
-
-  const key = `${match.tour.toLowerCase()}:${player.id}`;
-  return playerCache[key] || null;
-}
-
-function analyzePlayers(match) {
-
-  const p1Cache = getCachedPlayer(match, match.player1);
-  const p2Cache = getCachedPlayer(match, match.player2);
-
-  const metricIds = [
-    "p1Ranking","p2Ranking",
-    "p1Form","p2Form",
-    "p1FirstServeWon","p2FirstServeWon",
-    "p1SecondServeWon","p2SecondServeWon",
-    "p1BreakSaved","p2BreakSaved",
-    "p1BreakWon","p2BreakWon"
-  ];
-
-  metricIds.forEach(resetMetricStyle);
-
-  document.getElementById("player1Card").classList.remove("edge");
-  document.getElementById("player2Card").classList.remove("edge");
-
-  if (!p1Cache || !p2Cache) {
-
-    setMetric("p1Ranking", p1Cache ? "Cached" : "Not cached");
-    setMetric("p2Ranking", p2Cache ? "Cached" : "Not cached");
-
-    [
-      "p1Form","p2Form",
-      "p1FirstServeWon","p2FirstServeWon",
-      "p1SecondServeWon","p2SecondServeWon",
-      "p1BreakSaved","p2BreakSaved",
-      "p1BreakWon","p2BreakWon"
-    ].forEach(id => setMetric(id,"Pending"));
-
-    document.getElementById("betterPlayer").textContent =
-      "Player data not cached yet";
-
-    const q = document.getElementById("qualification");
-    q.textContent = "PASS — INCOMPLETE DATA";
-    q.className = "pass";
-
-    document.getElementById("verdictNote").textContent =
-      "Both players must have verified data before the War Room grades the matchup.";
-
-    return;
-  }
-
-  const profile1 = unwrap(p1Cache.profile) || {};
-  const profile2 = unwrap(p2Cache.profile) || {};
-
-  const rank1 = getRanking(profile1);
-  const rank2 = getRanking(profile2);
-
-  const form1 = getForm(profile1);
-  const form2 = getForm(profile2);
-
-  const stats1 = getSeasonMetrics(p1Cache.season2026);
-  const stats2 = getSeasonMetrics(p2Cache.season2026);
-
-  setMetric("p1Ranking", rank1 ? `#${rank1}` : "Pending");
-  setMetric("p2Ranking", rank2 ? `#${rank2}` : "Pending");
-
-  setMetric("p1Form", form1 ? form1.text : "Pending");
-  setMetric("p2Form", form2 ? form2.text : "Pending");
-
-  setMetric("p1FirstServeWon", percentText(stats1.firstServeWon));
-  setMetric("p2FirstServeWon", percentText(stats2.firstServeWon));
-
-  setMetric("p1SecondServeWon", percentText(stats1.secondServeWon));
-  setMetric("p2SecondServeWon", percentText(stats2.secondServeWon));
-
-  setMetric("p1BreakSaved", percentText(stats1.breakSaved));
-  setMetric("p2BreakSaved", percentText(stats2.breakSaved));
-
-  setMetric("p1BreakWon", percentText(stats1.breakWon));
-  setMetric("p2BreakWon", percentText(stats2.breakWon));
-
-  let score = 0;
-  let usable = 0;
-
-  if (rank1 !== null && rank2 !== null) {
-    score += compareLowerBetter(
-      rank1,rank2,
-      "p1Ranking","p2Ranking",
-      3
-    );
-    usable++;
-  }
-
-  if (form1 && form2 && form1.total >= 5 && form2.total >= 5) {
-    score += compareHigherBetter(
-      form1.wins,form2.wins,
-      "p1Form","p2Form",
-      2
-    );
-    usable++;
-  }
-
-  const comparisons = [
-    [
-      stats1.firstServeWon,
-      stats2.firstServeWon,
-      "p1FirstServeWon",
-      "p2FirstServeWon",
-      3
-    ],
-    [
-      stats1.secondServeWon,
-      stats2.secondServeWon,
-      "p1SecondServeWon",
-      "p2SecondServeWon",
-      3
-    ],
-    [
-      stats1.breakSaved,
-      stats2.breakSaved,
-      "p1BreakSaved",
-      "p2BreakSaved",
-      4
-    ],
-    [
-      stats1.breakWon,
-      stats2.breakWon,
-      "p1BreakWon",
-      "p2BreakWon",
-      4
-    ]
-  ];
-
-  comparisons.forEach(([a,b,idA,idB,threshold]) => {
-    if (a !== null && b !== null) {
-      score += compareHigherBetter(a,b,idA,idB,threshold);
+const definitions=[
+  {key:"rank",label:"CURRENT RANKING",lower:true,threshold:3,format:v=>v===null?"Pending":"#"+v},
+  {key:"form",label:"LAST 10 FORM",threshold:2,
+    format:v=>v?`${v.wins}-${v.losses}`:"Pending",
+    score:v=>v?.wins??null},
+  {key:"first",label:"2026 FIRST SERVE POINTS WON",threshold:3,format:percent},
+  {key:"second",label:"2026 SECOND SERVE POINTS WON",threshold:3,format:percent},
+  {key:"saved",label:"2026 BREAK POINTS SAVED",threshold:4,format:percent},
+  {key:"converted",label:"2026 BREAK POINTS CONVERTED",threshold:4,format:percent}
+];
+
+function percent(v){return v===null?"Pending":v.toFixed(1)+"%";}
+
+function showComparison(match){
+  const a=metrics(getPlayer(match,"player1"));
+  const b=metrics(getPlayer(match,"player2"));
+  const container=$("comparison");
+  container.replaceChildren();
+  $("player1Card").classList.remove("edge");
+  $("player2Card").classList.remove("edge");
+
+  let score=0,usable=0,positive=0,negative=0;
+
+  for(const def of definitions){
+    const av=a?a[def.key]:null;
+    const bv=b?b[def.key]:null;
+    const left=document.createElement("div");
+    const center=document.createElement("div");
+    const right=document.createElement("div");
+
+    left.className="value";
+    center.className="metric";
+    right.className="value";
+
+    left.textContent=def.format(av);
+    center.textContent=def.label;
+    right.textContent=def.format(bv);
+
+    const x=def.score?def.score(av):av;
+    const y=def.score?def.score(bv):bv;
+
+    if(x!==null&&y!==null){
       usable++;
-    }
-  });
-
-  const better = document.getElementById("betterPlayer");
-  const qualification = document.getElementById("qualification");
-  const note = document.getElementById("verdictNote");
-
-  if (usable < 2) {
-    better.textContent = "Not enough verified evidence";
-    qualification.textContent = "PASS — INCOMPLETE DATA";
-    qualification.className = "pass";
-    note.textContent =
-      `${usable} verified comparison metric(s) available.`;
-    return;
-  }
-
-  /*
-    We deliberately require separation.
-    A tiny score does NOT create a winner.
-  */
-
-  if (score >= 2) {
-    better.textContent = match.player1.name;
-    document.getElementById("player1Card").classList.add("edge");
-
-    qualification.textContent =
-      score >= 3 ? "BETTER PLAYER EDGE" : "LEAN";
-
-    qualification.className =
-      score >= 3 ? "pass qualified" : "pass";
-
-    note.textContent =
-      `Verified comparison score: ${score}. Market value has NOT been considered yet.`;
-
-  } else if (score <= -2) {
-
-    better.textContent = match.player2.name;
-    document.getElementById("player2Card").classList.add("edge");
-
-    qualification.textContent =
-      score <= -3 ? "BETTER PLAYER EDGE" : "LEAN";
-
-    qualification.className =
-      score <= -3 ? "pass qualified" : "pass";
-
-    note.textContent =
-      `Verified comparison score: ${score}. Market value has NOT been considered yet.`;
-
-  } else {
-
-    better.textContent = "TOO CLOSE";
-    qualification.textContent = "PASS — CONFLICTING EDGE";
-    qualification.className = "pass";
-
-    note.textContent =
-      `Verified comparison score: ${score}. Evidence does not separate the players enough.`;
-  }
-}
-
-async function loadTennisData() {
-
-  const selector = document.getElementById("matchSelect");
-
-  try {
-
-    const [atpResponse,wtaResponse,cacheResponse] =
-      await Promise.all([
-        fetch("data/atp-today.json?cache=" + Date.now()),
-        fetch("data/wta-today.json?cache=" + Date.now()),
-        fetch("data/player-cache.json?cache=" + Date.now())
-      ]);
-
-    if (!atpResponse.ok || !wtaResponse.ok) {
-      throw new Error("Could not load tennis fixtures.");
-    }
-
-    const atpJSON = await atpResponse.json();
-    const wtaJSON = await wtaResponse.json();
-
-    if (cacheResponse.ok) {
-      playerCache = await cacheResponse.json();
-
-      if (!playerCache || typeof playerCache !== "object") {
-        playerCache = {};
+      const advantage=def.lower?y-x:x-y;
+      if(advantage>=def.threshold){
+        left.classList.add("good");score++;positive++;
+      }else if(advantage<=-def.threshold){
+        right.classList.add("good");score--;negative++;
       }
     }
 
-    const atpMatches =
-      Array.isArray(atpJSON.data)
-      ? atpJSON.data.map(match => ({...match,tour:"ATP"}))
-      : [];
+    container.append(left,center,right);
+  }
 
-    const wtaMatches =
-      Array.isArray(wtaJSON.data)
-      ? wtaJSON.data.map(match => ({...match,tour:"WTA"}))
-      : [];
+  const q=$("qualification");
+  q.className="status";
 
-    allMatches = [...atpMatches,...wtaMatches];
+  if(!a||!b){
+    $("betterPlayer").textContent="Player data not cached yet";
+    q.textContent="PASS — INCOMPLETE DATA";
+    $("verdictNote").textContent="Both players need verified profiles and season stats.";
+  }else if(usable<4){
+    $("betterPlayer").textContent="Not enough verified evidence";
+    q.textContent="PASS — INCOMPLETE DATA";
+    $("verdictNote").textContent=`Only ${usable} comparable metrics available.`;
+  }else if(Math.abs(score)<2){
+    $("betterPlayer").textContent="TOO CLOSE";
+    q.textContent="PASS — NO CLEAR EDGE";
+    $("verdictNote").textContent=`Comparison score ${score}; ${usable} metrics checked.`;
+  }else{
+    const first=score>0;
+    $("betterPlayer").textContent=first?match.player1.name:match.player2.name;
+    $(first?"player1Card":"player2Card").classList.add("edge");
+    const strong=Math.abs(score)>=3&&
+      (first?negative:positive)===0;
+    q.textContent=strong?"BETTER PLAYER EDGE":"PLAYER STRENGTH LEAN";
+    if(strong)q.classList.add("positive");
+    $("verdictNote").textContent=
+      `Score ${score}; ${usable} metrics compared. This is NOT a qualified bet. No market price or calibrated win probability yet.`;
+  }
+}
 
-    allMatches.sort((a,b) => {
-      const dateA = new Date(a.startTime || a.date || 0);
-      const dateB = new Date(b.startTime || b.date || 0);
-      return dateA - dateB;
+function showMatch(index){
+  const match=allMatches[index];
+  if(!match)return;
+
+  for(const [number,side] of [[1,"player1"],[2,"player2"]]){
+    const player=match[side]||{};
+    $(`player${number}Name`).textContent=player.name||"Unknown";
+    $(`player${number}Country`).textContent=player.countryAcr||"—";
+    $(`player${number}Seed`).textContent=
+      "Seed: "+(match[`seed${number}`]??"—");
+  }
+
+  const info=[
+    match.tour,
+    match.tournament?.name||"Tournament unavailable",
+    match.round?.name||"Round unavailable",
+    dateLabel(dateKey(match))
+  ];
+  $("matchInfo").textContent=info.join(" • ");
+  showComparison(match);
+}
+
+async function loadData(){
+  try{
+    const bust=Date.now();
+    const responses=await Promise.all([
+      fetch(`data/atp-today.json?v=${bust}`),
+      fetch(`data/wta-today.json?v=${bust}`),
+      fetch(`data/player-cache.json?v=${bust}`)
+    ]);
+
+    if(responses.some(r=>!r.ok))throw new Error("A data file is missing");
+
+    const [atp,wta,cache]=await Promise.all(responses.map(r=>r.json()));
+    playerCache=cache&&typeof cache==="object"&&!Array.isArray(cache)?cache:{};
+
+    allMatches=[
+      ...(Array.isArray(atp.data)?atp.data:[]).map(m=>({...m,tour:"ATP"})),
+      ...(Array.isArray(wta.data)?wta.data:[]).map(m=>({...m,tour:"WTA"}))
+    ];
+
+    allMatches.sort((a,b)=>{
+      const x=parseMatchDate(a)?.getTime()??Infinity;
+      const y=parseMatchDate(b)?.getTime()??Infinity;
+      return x-y;
     });
 
+    $("matchCount").textContent=`${allMatches.length} MATCHES LOADED`;
+    $("cacheCount").textContent=`${Object.keys(playerCache).length} PLAYERS CACHED`;
     buildDropdown();
-
-    document.getElementById("matchCount").textContent =
-      `${allMatches.length} MATCHES LOADED`;
-
-    document.getElementById("cacheCount").textContent =
-      `${Object.keys(playerCache).length} PLAYERS CACHED`;
-
-  } catch(error) {
-
+  }catch(error){
     console.error(error);
-
-    selector.innerHTML =
-      "<option>Unable to load tennis data</option>";
-
-    document.getElementById("matchCount").textContent =
-      "DATA ERROR";
+    $("matchCount").textContent="DATA ERROR";
+    $("matchSelect").replaceChildren();
+    const option=document.createElement("option");
+    option.textContent="Unable to load data. Check GitHub Actions.";
+    $("matchSelect").appendChild(option);
   }
 }
 
-function buildDropdown() {
-
-  const selector = document.getElementById("matchSelect");
-
-  selector.innerHTML =
-    '<option value="">Select a tennis matchup...</option>';
-
-  allMatches.forEach((match,index) => {
-
-    if (!match.player1 || !match.player2) return;
-
-    const option = document.createElement("option");
-
-    option.value = index;
-
-    const p1 = match.player1.name || "Player 1";
-    const p2 = match.player2.name || "Player 2";
-    const tournament = match.tournament?.name || "Tournament";
-
-    const p1Cached = !!getCachedPlayer(match,match.player1);
-    const p2Cached = !!getCachedPlayer(match,match.player2);
-
-    const ready =
-      p1Cached && p2Cached ? "✓ " : "";
-
-    option.textContent =
-      `${ready}[${match.tour}] ${p1} vs ${p2} — ${tournament}`;
-
-    selector.appendChild(option);
-  });
-}
-
-function formatDate(value) {
-
-  if (!value) return "Time unavailable";
-
-  const date = new Date(value);
-
-  if (isNaN(date.getTime())) return value;
-
-  return date.toLocaleString([],{
-    month:"short",
-    day:"numeric",
-    hour:"numeric",
-    minute:"2-digit"
-  });
-}
-
-function showMatch(index) {
-
-  const match = allMatches[index];
-  if (!match) return;
-
-  const p1 = match.player1 || {};
-  const p2 = match.player2 || {};
-
-  document.getElementById("player1Name").textContent =
-    p1.name || "Player 1";
-
-  document.getElementById("player2Name").textContent =
-    p2.name || "Player 2";
-
-  document.getElementById("player1Country").textContent =
-    p1.countryAcr || "—";
-
-  document.getElementById("player2Country").textContent =
-    p2.countryAcr || "—";
-
-  document.getElementById("player1Seed").textContent =
-    "Seed: " + (match.seed1 ?? "—");
-
-  document.getElementById("player2Seed").textContent =
-    "Seed: " + (match.seed2 ?? "—");
-
-  const tournament =
-    match.tournament?.name || "Tournament unavailable";
-
-  const round =
-    match.round?.name || "Round unavailable";
-
-  const start =
-    formatDate(match.startTime || match.date);
-
-  document.getElementById("matchInfo").innerHTML =
-    `<strong>${match.tour}</strong> • ${tournament} • ${round} • ${start}`;
-
-  analyzePlayers(match);
-}
-
-document
-  .getElementById("matchSelect")
-  .addEventListener("change",function(){
-
-    if (this.value === "") return;
-
-    showMatch(Number(this.value));
-  });
-document
-  .getElementById("matchSearch")
-  .addEventListener("input", function() {
-    buildDropdown(this.value);
-  });
-loadTennisData();
-
+$("matchSearch").addEventListener("input",buildDropdown);
+$("matchSelect").addEventListener("change",event=>{
+  if(event.target.value!=="")showMatch(Number(event.target.value));
+});
+loadData();
 </script>
-
 </body>
 </html>
