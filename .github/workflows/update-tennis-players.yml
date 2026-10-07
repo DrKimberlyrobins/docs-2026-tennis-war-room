@@ -1,3 +1,4 @@
+
 name: Update Tennis Players
 
 on:
@@ -5,6 +6,10 @@ on:
 
 permissions:
   contents: write
+
+concurrency:
+  group: tennis-player-cache
+  cancel-in-progress: false
 
 jobs:
   collect-players:
@@ -14,18 +19,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Select first 4 players
+      - name: Select uncached players
         run: |
           python3 - <<'PY'
           import json
           from pathlib import Path
+          from datetime import datetime, timezone, timedelta
+
+          cache_path = Path("data/player-cache.json")
+
+          try:
+              cache = json.loads(cache_path.read_text())
+              if not isinstance(cache, dict):
+                  cache = {}
+          except Exception:
+              cache = {}
+
+          now = datetime.now(timezone.utc)
+          cutoff = now - timedelta(hours=24)
 
           players = []
           seen = set()
 
           for tour in ("atp", "wta"):
               path = Path(f"data/{tour}-today.json")
-
               if not path.exists():
                   continue
 
@@ -34,7 +51,7 @@ jobs:
               for match in payload.get("data", []):
                   for side in ("player1", "player2"):
                       player = match.get(side) or {}
-                      pid = player.get("id")
+                      pid = player.get("id") or match.get(side + "Id")
 
                       if pid is None:
                           continue
@@ -43,8 +60,22 @@ jobs:
 
                       if key in seen:
                           continue
-
                       seen.add(key)
+
+                      cached = cache.get(key)
+                      if isinstance(cached, dict):
+                          stamp = cached.get("updatedAt")
+                          if stamp:
+                              try:
+                                  updated = datetime.fromisoformat(
+                                      stamp.replace("Z", "+00:00")
+                                  )
+                                  if updated.tzinfo is None:
+                                      updated = updated.replace(tzinfo=timezone.utc)
+                                  if updated >= cutoff:
+                                      continue
+                              except ValueError:
+                                  pass
 
                       players.append({
                           "id": str(pid),
@@ -52,24 +83,22 @@ jobs:
                           "tour": tour
                       })
 
-                      if len(players) >= 4:
+                      if len(players) >= 12:
                           break
 
-                  if len(players) >= 4:
+                  if len(players) >= 12:
                       break
 
-              if len(players) >= 4:
+              if len(players) >= 12:
                   break
 
           Path("players-to-fetch.json").write_text(
               json.dumps(players, indent=2)
           )
 
-          print("PLAYERS SELECTED:")
+          print("Players selected:", len(players))
           for p in players:
               print(p["tour"], p["id"], p["name"])
-
-          print("Total selected:", len(players))
           PY
 
       - name: Fetch player profiles and 2026 stats
@@ -81,56 +110,51 @@ jobs:
           python3 - <<'PY' > player-list.txt
           import json
 
-          players = json.load(open("players-to-fetch.json"))
-
-          for p in players:
-              safe_name = p["name"].replace("|", " ")
-              print(f'{p["tour"]}|{p["id"]}|{safe_name}')
+          for p in json.load(open("players-to-fetch.json")):
+              print(
+                  f'{p["tour"]}|{p["id"]}|'
+                  f'{p["name"].replace("|", " ")}'
+              )
           PY
 
           while IFS='|' read -r TOUR PLAYER_ID PLAYER_NAME
           do
-            echo "----------------------------------------"
-            echo "Collecting: $TOUR $PLAYER_NAME ($PLAYER_ID)"
+            echo "Collecting: $TOUR $PLAYER_NAME"
 
             PROFILE_FILE="player-temp/${TOUR}-${PLAYER_ID}-profile.json"
             STATS_FILE="player-temp/${TOUR}-${PLAYER_ID}-stats.json"
 
             PROFILE_CODE=$(curl \
-              --silent \
-              --show-error \
+              --silent --show-error \
               --output "$PROFILE_FILE" \
               --write-out "%{http_code}" \
               --get \
               --url "https://api.sportsapi365.com/v1/tennis/${TOUR}/player/profile/${PLAYER_ID}" \
               --header "X-Gravitee-Api-Key: $TENNIS_API_KEY" \
-              --data-urlencode "include=form,ranking,country")
+              --data-urlencode "include=form,ranking,country") || PROFILE_CODE="000"
 
             echo "Profile HTTP: $PROFILE_CODE"
 
             if [ "$PROFILE_CODE" != "200" ]; then
-              echo "PROFILE FAILED for $PLAYER_NAME"
-              cat "$PROFILE_FILE" || true
+              echo "PROFILE FAILED: $PLAYER_NAME"
               rm -f "$PROFILE_FILE"
               continue
             fi
 
             STATS_CODE=$(curl \
-              --silent \
-              --show-error \
+              --silent --show-error \
               --output "$STATS_FILE" \
               --write-out "%{http_code}" \
               --get \
               --url "https://api.sportsapi365.com/v1/tennis/profile/${PLAYER_ID}/match-stat/2026" \
               --header "X-Gravitee-Api-Key: $TENNIS_API_KEY" \
               --data-urlencode "type=${TOUR}" \
-              --data-urlencode "includeAll=true")
+              --data-urlencode "includeAll=true") || STATS_CODE="000"
 
             echo "2026 Stats HTTP: $STATS_CODE"
 
             if [ "$STATS_CODE" != "200" ]; then
-              echo "STATS FAILED for $PLAYER_NAME"
-              cat "$STATS_FILE" || true
+              echo "STATS FAILED: $PLAYER_NAME"
               rm -f "$PROFILE_FILE" "$STATS_FILE"
               continue
             fi
@@ -146,17 +170,16 @@ jobs:
           from pathlib import Path
           from datetime import datetime, timezone
 
-          cache_path = Path("data/player-cache.json")
+          path = Path("data/player-cache.json")
 
           try:
-              cache = json.loads(cache_path.read_text())
+              cache = json.loads(path.read_text())
               if not isinstance(cache, dict):
                   cache = {}
           except Exception:
               cache = {}
 
           players = json.load(open("players-to-fetch.json"))
-
           saved = 0
 
           for player in players:
@@ -166,49 +189,56 @@ jobs:
               profile_path = Path(
                   f"player-temp/{tour}-{pid}-profile.json"
               )
-
               stats_path = Path(
                   f"player-temp/{tour}-{pid}-stats.json"
               )
 
               if not profile_path.exists() or not stats_path.exists():
-                  print("Not cached:", player["name"])
                   continue
 
               try:
-                  profile_raw = json.loads(profile_path.read_text())
-                  stats_raw = json.loads(stats_path.read_text())
+                  profile = json.loads(profile_path.read_text())
+                  stats = json.loads(stats_path.read_text())
+
+                  profile_data = profile.get("data", profile)
+                  stats_data = stats.get("data", stats)
+
+                  if not isinstance(profile_data, dict):
+                      raise ValueError("Invalid profile payload")
+                  if not isinstance(stats_data, dict):
+                      raise ValueError("Invalid stats payload")
+
+                  cache[f"{tour}:{pid}"] = {
+                      "id": pid,
+                      "name": player["name"],
+                      "tour": tour.upper(),
+                      "profile": profile_data,
+                      "season2026": stats_data,
+                      "updatedAt": datetime.now(
+                          timezone.utc
+                      ).isoformat()
+                  }
+
+                  saved += 1
+                  print("Cached:", player["name"])
+
               except Exception as error:
-                  print("JSON error:", player["name"], error)
-                  continue
+                  print("Invalid data:", player["name"], error)
 
-              key = f"{tour}:{pid}"
-
-              cache[key] = {
-                  "id": pid,
-                  "name": player["name"],
-                  "tour": tour.upper(),
-                  "profile": profile_raw.get("data", profile_raw),
-                  "season2026": stats_raw.get("data", stats_raw),
-                  "updatedAt": datetime.now(timezone.utc).isoformat()
-              }
-
-              saved += 1
-              print("Cached:", key, player["name"])
-
-          cache_path.parent.mkdir(parents=True, exist_ok=True)
-
-          cache_path.write_text(
-              json.dumps(
-                  cache,
-                  indent=2,
-                  ensure_ascii=False
-              )
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(
+              json.dumps(cache, indent=2, ensure_ascii=False)
           )
 
           print("--------------------------------")
+          print("Players selected:", len(players))
           print("Players saved this run:", saved)
           print("Total players in cache:", len(cache))
+
+          if players and saved == 0:
+              raise SystemExit(
+                  "No players collected. Check API responses and limits."
+              )
           PY
 
       - name: Commit player cache
@@ -219,8 +249,8 @@ jobs:
           git add data/player-cache.json
 
           if git diff --cached --quiet; then
-            echo "No player cache changes."
+            echo "No cache changes."
           else
-            git commit -m "Update tennis player cache"
+            git commit -m "Expand tennis player cache"
             git push
           fi
