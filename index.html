@@ -7,7 +7,7 @@
 <title>Doc's 2026 Tennis War Room</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#07111f;color:#fff;font-family:Arial,sans-serif}
+body{margin:0;background:#07111f;color:white;font-family:Arial,sans-serif}
 header{text-align:center;padding:25px 12px;background:linear-gradient(135deg,#0b1d33,#12365c);border-bottom:3px solid #20d67b}
 h1{margin:0 0 9px;font-size:30px}
 .subtitle{color:#a9bed1}
@@ -17,7 +17,7 @@ h1{margin:0 0 9px;font-size:30px}
 main{max-width:1150px;margin:22px auto;padding:0 15px}
 .panel{background:#0d1b2a;border:1px solid #213b55;border-radius:14px;padding:20px;margin-bottom:18px}
 .heading{font-size:13px;letter-spacing:1px;color:#72e6ad;font-weight:bold;margin-bottom:13px}
-input,select{width:100%;padding:13px;background:#071522;color:#fff;border:1px solid #31506e;border-radius:9px;font-size:15px}
+input,select{width:100%;padding:13px;background:#071522;color:white;border:1px solid #31506e;border-radius:9px;font-size:15px}
 input{margin-bottom:12px}
 select{min-height:185px}
 optgroup{color:#72e6ad;background:#102237;font-weight:bold}
@@ -55,6 +55,7 @@ h1{font-size:24px}
 </style>
 </head>
 <body>
+
 <header>
 <h1>🎾 Doc's 2026 Tennis War Room</h1>
 <div class="subtitle">Player Strength • Form • Serve • Return • Matchup • Market</div>
@@ -63,12 +64,13 @@ h1{font-size:24px}
 <span class="badge" id="matchCount">Loading matches...</span>
 <span class="badge" id="cacheCount">Loading cache...</span>
 <span class="badge">PROVE IT MODE</span>
+<span class="badge green">TIMES: CENTRAL</span>
 </div>
 </header>
 
 <main>
 <section class="panel">
-<div class="heading">SEARCH TODAY & UPCOMING MATCHES</div>
+<div class="heading">SEARCH TODAY & UPCOMING MATCHES — CENTRAL TIME</div>
 <input id="matchSearch" type="search" placeholder="🔎 Type a player name or tournament..." autocomplete="off">
 <select id="matchSelect" size="9" aria-label="Tennis match results">
 <option>Loading matches...</option>
@@ -119,6 +121,7 @@ h1{font-size:24px}
 <div class="card"><div>MARKET EDGE</div><strong class="pending">Pending</strong></div>
 </div>
 </section>
+
 <footer>Ranking alone never qualifies a play • Conflicts = PASS • No edge = No play</footer>
 </main>
 
@@ -127,11 +130,10 @@ h1{font-size:24px}
 
 let allMatches=[];
 let playerCache={};
-
 const $=id=>document.getElementById(id);
 
 function unwrap(obj){
-  return obj && typeof obj==="object" && "data" in obj ? obj.data : obj;
+  return obj&&typeof obj==="object"&&"data" in obj?obj.data:obj;
 }
 
 function numeric(v){
@@ -151,6 +153,7 @@ function percentage(obj){
 
 function metrics(player){
   if(!player)return null;
+
   const profile=unwrap(player.profile)||{};
   const season=unwrap(player.season2026)||{};
   const service=season.serviceStats||{};
@@ -185,51 +188,106 @@ function getPlayer(match,side){
   return playerCache[`${match.tour.toLowerCase()}:${id}`]||null;
 }
 
-function parseMatchDate(match){
-  const rawDate=String(match.date||"");
-  const rawTime=String(match.startTime||"");
-  if(!rawDate&&!rawTime)return null;
+/*
+  TIME HANDLING
 
-  // Prefer the fixture's calendar date. Only use a complete
-  // startTime timestamp when no separate date is supplied.
-  if(!rawDate&&rawTime.includes("T")){
-    const d=new Date(rawTime);
-    return Number.isNaN(d.getTime())?null:d;
+  Use explicit timezone offsets or Z when provided.
+  Date-only values are treated as UTC midnight.
+  Naive timestamps are not assumed to be tournament-local:
+  we leave their timezone unverified rather than silently
+  applying an incorrect conversion.
+*/
+function parseTimestamp(value){
+  if(value===null||value===undefined)return null;
+  const raw=String(value).trim();
+  if(!raw)return null;
+
+  let normalized=raw;
+
+  if(/^\d{4}-\d{2}-\d{2}$/.test(raw)){
+    normalized=raw+"T00:00:00Z";
+  }else if(/^\d{4}-\d{2}-\d{2}T/.test(raw)){
+    if(!/(Z|[+-]\d{2}:?\d{2})$/i.test(raw)){
+      return null;
+    }
+  }else{
+    return null;
   }
 
-  const day=rawDate.slice(0,10);
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(day))return null;
-
-  let clock="00:00:00";
-  if(/^\d{1,2}:\d{2}/.test(rawTime)){
-    clock=rawTime;
-  }else if(rawTime.includes("T")){
-    const candidate=rawTime.split("T")[1];
-    if(/^\d{2}:\d{2}/.test(candidate))clock=candidate.slice(0,8);
-  }
-
-  // Keep the source's date intact; fixture timezone is not
-  // verified, so displayed clock times are provisional.
-  const d=new Date(`${day}T${clock}`);
+  const d=new Date(normalized);
   return Number.isNaN(d.getTime())?null:d;
 }
 
+function parseMatchDate(match){
+  // A full timezone-aware startTime takes priority.
+  const start=parseTimestamp(match.startTime);
+  if(start)return start;
+
+  // A timezone-aware date is the next option.
+  const date=parseTimestamp(match.date);
+  if(date)return date;
+
+  return null;
+}
+
+function centralParts(date){
+  const parts=new Intl.DateTimeFormat("en-US",{
+    timeZone:"America/Chicago",
+    year:"numeric",
+    month:"2-digit",
+    day:"2-digit",
+    hour:"numeric",
+    minute:"2-digit",
+    hour12:true,
+    timeZoneName:"short"
+  }).formatToParts(date);
+
+  const get=type=>parts.find(p=>p.type===type)?.value||"";
+  return {
+    year:get("year"),
+    month:get("month"),
+    day:get("day"),
+    hour:get("hour"),
+    minute:get("minute"),
+    dayPeriod:get("dayPeriod"),
+    zone:get("timeZoneName")
+  };
+}
+
 function dateKey(match){
-  const raw=String(match.date||"");
-  if(/^\d{4}-\d{2}-\d{2}/.test(raw))return raw.slice(0,10);
   const d=parseMatchDate(match);
   if(!d)return "Unknown date";
-  return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),
-    String(d.getDate()).padStart(2,"0")].join("-");
+
+  const p=centralParts(d);
+  return `${p.year}-${p.month}-${p.day}`;
 }
 
 function dateLabel(key){
   if(key==="Unknown date")return key;
-  const parts=key.split("-").map(Number);
-  const d=new Date(parts[0],parts[1]-1,parts[2]);
+
+  const [year,month,day]=key.split("-").map(Number);
+  const d=new Date(Date.UTC(year,month-1,day,12));
+
   return d.toLocaleDateString("en-US",{
-    weekday:"short",month:"short",day:"numeric",year:"numeric"
+    timeZone:"UTC",
+    weekday:"short",
+    month:"short",
+    day:"numeric",
+    year:"numeric"
   });
+}
+
+function timeLabel(match){
+  const d=parseMatchDate(match);
+  if(!d)return "Time unverified";
+
+  // If only a date was supplied, do not pretend
+  // midnight UTC is a verified start time.
+  const start=String(match.startTime||"");
+  if(!start.includes("T"))return "Time TBD";
+
+  const p=centralParts(d);
+  return `${p.hour}:${p.minute} ${p.dayPeriod} ${p.zone}`;
 }
 
 function buildDropdown(){
@@ -250,6 +308,7 @@ function buildDropdown(){
     if(query&&!searchable.includes(query))return;
 
     const day=dateKey(match);
+
     if(day!==previousDate){
       group=document.createElement("optgroup");
       group.label=dateLabel(day);
@@ -258,14 +317,12 @@ function buildDropdown(){
     }
 
     const ready=!!getPlayer(match,"player1")&&!!getPlayer(match,"player2");
-    const time=parseMatchDate(match);
-    const clock=time&&match.startTime
-      ?time.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})
-      :"Time TBD";
 
     const option=document.createElement("option");
     option.value=String(index);
-    option.textContent=`${ready?"✓ ":""}${clock} • [${match.tour}] ${a} vs ${b} — ${tournament}`;
+    option.textContent=
+      `${ready?"✓ ":""}${timeLabel(match)} • [${match.tour}] ${a} vs ${b} — ${tournament}`;
+
     group.appendChild(option);
     shown++;
   });
@@ -278,8 +335,13 @@ function buildDropdown(){
   }
 }
 
+function percent(v){
+  return v===null?"Pending":v.toFixed(1)+"%";
+}
+
 const definitions=[
-  {key:"rank",label:"CURRENT RANKING",lower:true,threshold:3,format:v=>v===null?"Pending":"#"+v},
+  {key:"rank",label:"CURRENT RANKING",lower:true,threshold:3,
+    format:v=>v===null?"Pending":"#"+v},
   {key:"form",label:"LAST 10 FORM",threshold:2,
     format:v=>v?`${v.wins}-${v.losses}`:"Pending",
     score:v=>v?.wins??null},
@@ -289,13 +351,12 @@ const definitions=[
   {key:"converted",label:"2026 BREAK POINTS CONVERTED",threshold:4,format:percent}
 ];
 
-function percent(v){return v===null?"Pending":v.toFixed(1)+"%";}
-
 function showComparison(match){
   const a=metrics(getPlayer(match,"player1"));
   const b=metrics(getPlayer(match,"player2"));
   const container=$("comparison");
   container.replaceChildren();
+
   $("player1Card").classList.remove("edge");
   $("player2Card").classList.remove("edge");
 
@@ -304,6 +365,7 @@ function showComparison(match){
   for(const def of definitions){
     const av=a?a[def.key]:null;
     const bv=b?b[def.key]:null;
+
     const left=document.createElement("div");
     const center=document.createElement("div");
     const right=document.createElement("div");
@@ -322,10 +384,15 @@ function showComparison(match){
     if(x!==null&&y!==null){
       usable++;
       const advantage=def.lower?y-x:x-y;
+
       if(advantage>=def.threshold){
-        left.classList.add("good");score++;positive++;
+        left.classList.add("good");
+        score++;
+        positive++;
       }else if(advantage<=-def.threshold){
-        right.classList.add("good");score--;negative++;
+        right.classList.add("good");
+        score--;
+        negative++;
       }
     }
 
@@ -338,7 +405,8 @@ function showComparison(match){
   if(!a||!b){
     $("betterPlayer").textContent="Player data not cached yet";
     q.textContent="PASS — INCOMPLETE DATA";
-    $("verdictNote").textContent="Both players need verified profiles and season stats.";
+    $("verdictNote").textContent=
+      "Both players need verified profiles and season stats.";
   }else if(usable<4){
     $("betterPlayer").textContent="Not enough verified evidence";
     q.textContent="PASS — INCOMPLETE DATA";
@@ -346,15 +414,21 @@ function showComparison(match){
   }else if(Math.abs(score)<2){
     $("betterPlayer").textContent="TOO CLOSE";
     q.textContent="PASS — NO CLEAR EDGE";
-    $("verdictNote").textContent=`Comparison score ${score}; ${usable} metrics checked.`;
+    $("verdictNote").textContent=
+      `Comparison score ${score}; ${usable} metrics checked.`;
   }else{
     const first=score>0;
-    $("betterPlayer").textContent=first?match.player1.name:match.player2.name;
+    $("betterPlayer").textContent=
+      first?match.player1.name:match.player2.name;
+
     $(first?"player1Card":"player2Card").classList.add("edge");
+
     const strong=Math.abs(score)>=3&&
       (first?negative:positive)===0;
+
     q.textContent=strong?"BETTER PLAYER EDGE":"PLAYER STRENGTH LEAN";
     if(strong)q.classList.add("positive");
+
     $("verdictNote").textContent=
       `Score ${score}; ${usable} metrics compared. This is NOT a qualified bet. No market price or calibrated win probability yet.`;
   }
@@ -366,6 +440,7 @@ function showMatch(index){
 
   for(const [number,side] of [[1,"player1"],[2,"player2"]]){
     const player=match[side]||{};
+
     $(`player${number}Name`).textContent=player.name||"Unknown";
     $(`player${number}Country`).textContent=player.countryAcr||"—";
     $(`player${number}Seed`).textContent=
@@ -376,8 +451,10 @@ function showMatch(index){
     match.tour,
     match.tournament?.name||"Tournament unavailable",
     match.round?.name||"Round unavailable",
-    dateLabel(dateKey(match))
+    dateLabel(dateKey(match)),
+    timeLabel(match)
   ];
+
   $("matchInfo").textContent=info.join(" • ");
   showComparison(match);
 }
@@ -385,20 +462,29 @@ function showMatch(index){
 async function loadData(){
   try{
     const bust=Date.now();
+
     const responses=await Promise.all([
       fetch(`data/atp-today.json?v=${bust}`),
       fetch(`data/wta-today.json?v=${bust}`),
       fetch(`data/player-cache.json?v=${bust}`)
     ]);
 
-    if(responses.some(r=>!r.ok))throw new Error("A data file is missing");
+    if(responses.some(r=>!r.ok)){
+      throw new Error("A data file is missing");
+    }
 
-    const [atp,wta,cache]=await Promise.all(responses.map(r=>r.json()));
-    playerCache=cache&&typeof cache==="object"&&!Array.isArray(cache)?cache:{};
+    const [atp,wta,cache]=await Promise.all(
+      responses.map(r=>r.json())
+    );
+
+    playerCache=cache&&typeof cache==="object"&&!Array.isArray(cache)
+      ?cache:{};
 
     allMatches=[
-      ...(Array.isArray(atp.data)?atp.data:[]).map(m=>({...m,tour:"ATP"})),
-      ...(Array.isArray(wta.data)?wta.data:[]).map(m=>({...m,tour:"WTA"}))
+      ...(Array.isArray(atp.data)?atp.data:[])
+        .map(m=>({...m,tour:"ATP"})),
+      ...(Array.isArray(wta.data)?wta.data:[])
+        .map(m=>({...m,tour:"WTA"}))
     ];
 
     allMatches.sort((a,b)=>{
@@ -408,12 +494,17 @@ async function loadData(){
     });
 
     $("matchCount").textContent=`${allMatches.length} MATCHES LOADED`;
-    $("cacheCount").textContent=`${Object.keys(playerCache).length} PLAYERS CACHED`;
+    $("cacheCount").textContent=
+      `${Object.keys(playerCache).length} PLAYERS CACHED`;
+
     buildDropdown();
+
   }catch(error){
     console.error(error);
     $("matchCount").textContent="DATA ERROR";
+
     $("matchSelect").replaceChildren();
+
     const option=document.createElement("option");
     option.textContent="Unable to load data. Check GitHub Actions.";
     $("matchSelect").appendChild(option);
@@ -421,9 +512,13 @@ async function loadData(){
 }
 
 $("matchSearch").addEventListener("input",buildDropdown);
+
 $("matchSelect").addEventListener("change",event=>{
-  if(event.target.value!=="")showMatch(Number(event.target.value));
+  if(event.target.value!==""){
+    showMatch(Number(event.target.value));
+  }
 });
+
 loadData();
 </script>
 </body>
