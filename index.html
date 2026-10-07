@@ -280,147 +280,146 @@ select{
   <div class="panel">
     <div class="panel-title">TODAY & UPCOMING MATCHES</div>
 
-    <select id="matchSelect">
-      <option value="">Loading ATP & WTA matches...</option>
-    </select>
+function matchDateTime(match) {
+  const datePart = match.date || "";
+  const timePart = match.startTime || "";
 
-    <div class="match-info" id="matchInfo"></div>
-  </div>
-
-  <div class="panel">
-
-    <div class="players">
-
-      <div class="player-card" id="player1Card">
-        <div class="player-label">PLAYER A</div>
-        <div class="player-name" id="player1Name">Select a Match</div>
-        <div class="country" id="player1Country">—</div>
-        <div class="seed" id="player1Seed">Seed: —</div>
-      </div>
-
-      <div class="vs">VS</div>
-
-      <div class="player-card" id="player2Card">
-        <div class="player-label">PLAYER B</div>
-        <div class="player-name" id="player2Name">Select a Match</div>
-        <div class="country" id="player2Country">—</div>
-        <div class="seed" id="player2Seed">Seed: —</div>
-      </div>
-
-    </div>
-
-    <div class="section-heading">Verified Player Comparison</div>
-
-    <div class="compare-grid">
-
-      <div class="metric-value pending" id="p1Ranking">—</div>
-      <div class="metric-name">CURRENT RANKING</div>
-      <div class="metric-value pending" id="p2Ranking">—</div>
-
-      <div class="metric-value pending" id="p1Form">—</div>
-      <div class="metric-name">LAST 10</div>
-      <div class="metric-value pending" id="p2Form">—</div>
-
-      <div class="metric-value pending" id="p1FirstServeWon">—</div>
-      <div class="metric-name">1ST SERVE PTS WON</div>
-      <div class="metric-value pending" id="p2FirstServeWon">—</div>
-
-      <div class="metric-value pending" id="p1SecondServeWon">—</div>
-      <div class="metric-name">2ND SERVE PTS WON</div>
-      <div class="metric-value pending" id="p2SecondServeWon">—</div>
-
-      <div class="metric-value pending" id="p1BreakSaved">—</div>
-      <div class="metric-name">BREAK PTS SAVED</div>
-      <div class="metric-value pending" id="p2BreakSaved">—</div>
-
-      <div class="metric-value pending" id="p1BreakWon">—</div>
-      <div class="metric-name">BREAK PTS CONVERTED</div>
-      <div class="metric-value pending" id="p2BreakWon">—</div>
-
-    </div>
-
-    <div class="section-heading">Not Yet Proven</div>
-
-    <div class="stats-grid">
-
-      <div class="stat">
-        <div class="stat-name">OVERALL ELO</div>
-        <div class="stat-value pending">Pending</div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-name">SURFACE ELO</div>
-        <div class="stat-value pending">Pending</div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-name">SURFACE RECORD</div>
-        <div class="stat-value pending">Pending</div>
-      </div>
-
-    </div>
-
-  </div>
-
-  <div class="panel verdict">
-
-    <div class="verdict-label">WHO IS THE BETTER PLAYER?</div>
-
-    <div class="verdict-player" id="betterPlayer">
-      Select a matchup
-    </div>
-
-    <div class="pass" id="qualification">
-      NOT YET GRADED
-    </div>
-
-    <div class="note" id="verdictNote">
-      Only verified data is allowed to influence the verdict.
-    </div>
-
-  </div>
-
-  <div class="panel">
-
-    <div class="panel-title">KALSHI MARKET — NEXT PHASE</div>
-
-    <div class="stats-grid">
-
-      <div class="stat">
-        <div class="stat-name">WAR ROOM PROBABILITY</div>
-        <div class="stat-value pending">Pending</div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-name">KALSHI PRICE</div>
-        <div class="stat-value pending">Pending</div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-name">MARKET EDGE</div>
-        <div class="stat-value pending">Pending</div>
-      </div>
-
-    </div>
-
-  </div>
-
-  <div class="footer">
-    Ranking alone never qualifies a play • Conflicts = PASS • No edge = No play
-  </div>
-
-</div>
-
-<script>
-
-let allMatches = [];
-let playerCache = {};
-
-function unwrap(value) {
-  if (value && typeof value === "object" && "data" in value) {
-    return value.data;
+  // If startTime already contains a full date
+  if (timePart && timePart.includes("-")) {
+    const d = new Date(timePart);
+    if (!isNaN(d)) return d;
   }
-  return value;
+
+  // Combine separate API date + time fields
+  if (datePart) {
+    const cleanDate = String(datePart).split("T")[0];
+
+    let cleanTime = "00:00:00";
+
+    if (timePart) {
+      if (String(timePart).includes("T")) {
+        const d = new Date(timePart);
+        if (!isNaN(d)) return d;
+      } else {
+        cleanTime = String(timePart);
+      }
+    }
+
+    const d = new Date(`${cleanDate}T${cleanTime}`);
+
+    if (!isNaN(d)) return d;
+  }
+
+  return new Date(8640000000000000);
+}
+
+
+function dateHeading(match) {
+  const d = matchDateTime(match);
+
+  if (isNaN(d)) return "DATE UNKNOWN";
+
+  return d.toLocaleDateString([], {
+    weekday: "short",
+    month: "short",
+    day: "numeric"
+  }).toUpperCase();
+}
+
+
+function buildDropdown(searchText = "") {
+
+  const selector = document.getElementById("matchSelect");
+
+  selector.innerHTML = "";
+
+  const search = searchText.trim().toLowerCase();
+
+  // TRUE DATE → TIME SORT
+  allMatches.sort((a,b) =>
+    matchDateTime(a) - matchDateTime(b)
+  );
+
+  let lastDate = "";
+  let shown = 0;
+
+  allMatches.forEach((match,index) => {
+
+    if (!match.player1 || !match.player2) return;
+
+    const p1 = match.player1.name || "Player 1";
+    const p2 = match.player2.name || "Player 2";
+
+    const searchable =
+      `${p1} ${p2} ${match.tour} ${match.tournament?.name || ""}`
+      .toLowerCase();
+
+    if (search && !searchable.includes(search)) return;
+
+    const heading = dateHeading(match);
+
+    if (heading !== lastDate) {
+
+      const group = document.createElement("optgroup");
+      group.label = heading;
+      group.dataset.date = heading;
+
+      selector.appendChild(group);
+
+      lastDate = heading;
+    }
+
+    const groups = selector.querySelectorAll("optgroup");
+    const currentGroup = groups[groups.length - 1];
+
+    const option = document.createElement("option");
+
+    option.value = index;
+
+    const tournament =
+      match.tournament?.name || "Tournament";
+
+    const p1Cached =
+      !!getCachedPlayer(match,match.player1);
+
+    const p2Cached =
+      !!getCachedPlayer(match,match.player2);
+
+    const ready =
+      p1Cached && p2Cached ? "✓ " : "";
+
+    const time = matchDateTime(match);
+
+    let timeText = "";
+
+    if (!isNaN(time)) {
+      timeText = time.toLocaleTimeString([], {
+        hour:"numeric",
+        minute:"2-digit"
+      });
+    }
+
+    option.textContent =
+      `${ready}${timeText} • [${match.tour}] ${p1} vs ${p2} — ${tournament}`;
+
+    currentGroup.appendChild(option);
+
+    shown++;
+  });
+
+  if (shown === 0) {
+
+    const option = document.createElement("option");
+
+    option.textContent =
+      search
+        ? `No matches found for "${searchText}"`
+        : "No matches available";
+
+    option.disabled = true;
+
+    selector.appendChild(option);
+  }
 }
 
 function numberValue(value) {
@@ -1076,7 +1075,11 @@ document
 
     showMatch(Number(this.value));
   });
-
+document
+  .getElementById("matchSearch")
+  .addEventListener("input", function() {
+    buildDropdown(this.value);
+  });
 loadTennisData();
 
 </script>
