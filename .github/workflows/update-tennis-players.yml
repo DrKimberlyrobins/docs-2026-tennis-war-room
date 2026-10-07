@@ -1,0 +1,155 @@
+
+name: Update Tennis Players
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  collect-players:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Collect player data
+        env:
+          TENNIS_API_KEY: ${{ secrets.TENNIS_API_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import time
+          import urllib.request
+          from datetime import datetime, timezone, timedelta
+          from pathlib import Path
+
+          base = "https://api.sportsapi365.com/v1/tennis"
+          key = os.environ["TENNIS_API_KEY"]
+          cache_path = Path("data/player-cache.json")
+
+          cache = {}
+          if cache_path.exists():
+              cache = json.loads(cache_path.read_text())
+
+          if not isinstance(cache, dict):
+              cache = {}
+
+          players = []
+
+          for tour in ("atp", "wta"):
+              path = Path(f"data/{tour}-today.json")
+              if not path.exists():
+                  continue
+
+              payload = json.loads(path.read_text())
+
+              for match in payload.get("data", []):
+                  for side in ("player1", "player2"):
+                      player = match.get(side) or {}
+                      pid = player.get("id")
+                      if pid is not None:
+                          players.append({
+                              "id": str(pid),
+                              "name": player.get("name", ""),
+                              "tour": tour
+                          })
+
+          unique = {}
+          for player in players:
+              unique[f"{player['tour']}:{player['id']}"] = player
+
+          now = datetime.now(timezone.utc)
+          cutoff = now - timedelta(hours=24)
+
+          # First run: at most 4 players, 2 requests each.
+          limit = 4
+          processed = 0
+
+          def get_json(path, params=""):
+              url = base + path + params
+              req = urllib.request.Request(
+                  url,
+                  headers={"X-Gravitee-Api-Key": key}
+              )
+              with urllib.request.urlopen(req, timeout=25) as response:
+                  return json.load(response)
+
+          for cache_key, player in unique.items():
+              if processed >= limit:
+                  break
+
+              previous = cache.get(cache_key, {})
+              updated = previous.get("updatedAt")
+
+              if updated:
+                  try:
+                      timestamp = datetime.fromisoformat(
+                          updated.replace("Z", "+00:00")
+                      )
+                      if timestamp > cutoff:
+                          continue
+                  except ValueError:
+                      pass
+
+              tour = player["tour"]
+              pid = player["id"]
+
+              print("Collecting:", tour, player["name"])
+
+              try:
+                  profile = get_json(
+                      f"/{tour}/player/profile/{pid}",
+                      "?include=form,ranking,country"
+                  )
+
+                  stats = get_json(
+                      f"/profile/{pid}/match-stat/2026",
+                      f"?type={tour}&includeAll=true"
+                  )
+
+                  cache[cache_key] = {
+                      "id": pid,
+                      "name": player["name"],
+                      "tour": tour.upper(),
+                      "profile": profile.get("data", profile),
+                      "season2026": stats.get("data", stats),
+                      "updatedAt": now.isoformat()
+                  }
+
+                  processed += 1
+                  time.sleep(1)
+
+              except Exception as error:
+                  print(
+                      "Unable to collect",
+                      player["name"],
+                      type(error).__name__,
+                      str(error)
+                  )
+
+          cache_path.parent.mkdir(parents=True, exist_ok=True)
+          cache_path.write_text(
+              json.dumps(cache, indent=2, ensure_ascii=False)
+          )
+
+          print("New players collected:", processed)
+          print("Total cached players:", len(cache))
+          PY
+
+      - name: Save player cache
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data/player-cache.json
+
+          if git diff --cached --quiet; then
+            echo "No player cache changes."
+          else
+            git commit -m "Update tennis player cache"
+            git push
+          fi
