@@ -98,6 +98,13 @@ h1{font-size:24px}
 <div class="section">Verified Player Comparison</div>
 <div class="compare" id="comparison"></div>
 
+<div class="section">PLAYER DATA COVERAGE & VERIFICATION</div>
+<div class="cards" id="coverageCards"><div class="card">Checking verified player profiles…</div></div>
+<div class="note" id="coverageNote">Ranking and performance data are never estimated from tournament seeds.</div>
+<div class="actions" style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">
+<a href="https://www.atptour.com/en/rankings/singles" target="_blank" rel="noopener" style="color:#32e889">Official ATP Rankings ↗</a>
+<a href="https://www.wtatennis.com/rankings/singles" target="_blank" rel="noopener" style="color:#32e889">Official WTA Rankings ↗</a>
+</div>
 <div class="section">Not Yet Proven</div>
 <div class="cards">
 <div class="card"><div>OVERALL ELO</div><strong class="pending">Pending</strong></div>
@@ -459,6 +466,15 @@ function showMatch(index){
   showComparison(match);
 }
 
+function updateCoverage(){
+ const total=allMatches.length;
+ const ready=allMatches.filter(m=>!!getPlayer(m,"player1")&&!!getPlayer(m,"player2")).length;
+ const ids=new Set(allMatches.flatMap(m=>[m.tour.toLowerCase()+":"+(m.player1?.id??m.player1Id),m.tour.toLowerCase()+":"+(m.player2?.id??m.player2Id)]));
+ const cached=[...ids].filter(k=>!!playerCache[k]).length;
+ const box=$("coverageCards");
+ if(box)box.innerHTML='<div class="card"><div>FIXTURES</div><strong>'+total+'</strong></div><div class="card"><div>PLAYER PROFILES FOUND</div><strong>'+cached+' / '+ids.size+'</strong></div><div class="card"><div>FULLY COVERED MATCHUPS</div><strong>'+ready+' / '+total+'</strong></div>';
+ const note=$("coverageNote");if(note)note.textContent=ready===0?"No matchup has two cached profiles. Rankings, serve statistics and probabilities must remain unqualified until verified.":"Coverage is partial. Only verified fields may be compared. Rankings must come from a dated ATP/WTA source.";
+}
 async function loadData(){
   try{
     const bust=Date.now();
@@ -487,6 +503,7 @@ async function loadData(){
         .map(m=>({...m,tour:"WTA"}))
     ];
 
+    updateCoverage();
     allMatches.sort((a,b)=>{
       const x=parseMatchDate(a)?.getTime()??Infinity;
       const y=parseMatchDate(b)?.getTime()??Infinity;
