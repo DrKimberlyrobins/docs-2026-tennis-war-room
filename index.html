@@ -163,7 +163,7 @@ function metrics(player){
   if(!player)return null;
 
   const profile=unwrap(player.profile)||{};
-  const season=unwrap(player.season2026)||{};
+  const season=unwrap(player.careerStats)||unwrap(player.season2026)||{};
   const service=season.serviceStats||{};
   const bpServe=season.breakPointsServe||{};
   const bpReturn=season.breakPointsRtn||{};
@@ -311,6 +311,8 @@ function buildDropdown(){
     const a=match.player1?.name||"Player 1";
     const b=match.player2?.name||"Player 2";
     const tournament=match.tournament?.name||"Tournament";
+    const level=Number(match.tournament?.rankId);
+    const division=level===0?"ITF":level===1?"ITF / CHALLENGER":match.tour;
     const searchable=`${a} ${b} ${tournament} ${match.tour}`.toLowerCase();
 
     if(query&&!searchable.includes(query))return;
@@ -329,7 +331,7 @@ function buildDropdown(){
     const option=document.createElement("option");
     option.value=String(index);
     option.textContent=
-      `${ready?"✓ ":""}${timeLabel(match)} • [${match.tour}] ${a} vs ${b} — ${tournament}`;
+      `${ready?"✓ ":""}${timeLabel(match)} • [${division}] ${a} vs ${b} — ${tournament}`;
 
     group.appendChild(option);
     shown++;
@@ -353,10 +355,10 @@ const definitions=[
   {key:"form",label:"LAST 10 FORM",threshold:2,
     format:v=>v?`${v.wins}-${v.losses}`:"Pending",
     score:v=>v?.wins??null},
-  {key:"first",label:"2026 FIRST SERVE POINTS WON",threshold:3,format:percent},
-  {key:"second",label:"2026 SECOND SERVE POINTS WON",threshold:3,format:percent},
-  {key:"saved",label:"2026 BREAK POINTS SAVED",threshold:4,format:percent},
-  {key:"converted",label:"2026 BREAK POINTS CONVERTED",threshold:4,format:percent}
+  {key:"first",label:"FIRST SERVE POINTS WON (AGGREGATE)",threshold:3,format:percent},
+  {key:"second",label:"SECOND SERVE POINTS WON (AGGREGATE)",threshold:3,format:percent},
+  {key:"saved",label:"BREAK POINTS SAVED (AGGREGATE)",threshold:4,format:percent},
+  {key:"converted",label:"BREAK POINTS CONVERTED (AGGREGATE)",threshold:4,format:percent}
 ];
 
 function showVerifiedDetails(match){
@@ -383,7 +385,8 @@ function showVerifiedDetails(match){
  const h=h2hCache[match.tour.toLowerCase()+':'+oppB+':'+oppA];
  const rows=Array.isArray(h?.surfaces)?h.surfaces:[];
  const h1=rows.reduce((s,x)=>s+(Number(x.player1wins)||0),0),h2=rows.reduce((s,x)=>s+(Number(x.player2wins)||0),0);
- const meetingNote=h?'Verified H2H (all levels): '+h1+'-'+h2+'; '+(h.meetings?.length||0)+' matches in cache':'Head-to-head: pending verified historical meetings.';
+ const fh=match.h2h;
+ const meetingNote=fh&&fh.player1AllWins!=null&&fh.player2AllWins!=null?'Verified H2H (all levels): '+fh.player1AllWins+'-'+fh.player2AllWins:h?'H2H cache: '+h1+'-'+h2+'; '+(h.meetings?.length||0)+' meetings':'Head-to-head: no verified record available.';
  el.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px">'+show(a)+show(b)+'</div><div class="note" style="margin-top:12px">'+meetingNote+' Rankings and points are source snapshots; missing values are not estimates. Serve and break-point statistics are shown above only where supplied.</div>';
 }
 function showComparison(match){
