@@ -95,8 +95,18 @@ def main():
     if not KEY:raise RuntimeError("Set RAPIDAPI_KEY as a repository Actions secret before running.")
     cache=read("player-cache.json",{})
     fixtures=[]
+    fixture_errors=[]
     for tour in ("atp","wta"):
-        payload=read(tour+"-today.json",{})
+        old=read(tour+"-today.json",{})
+        try:
+            rows=fetch(tour+"/fixtures",{"include":"round,tournament,tournament.court,tournament.rank,h2h","filter":"PlayerGroup:singles","pageSize":500,"pageNo":1})
+            if not isinstance(rows,list):raise ValueError("Unexpected fixtures response")
+            # An empty valid schedule is not an API outage.
+            payload={"data":rows,"updatedAt":now if "now" in locals() else datetime.now(timezone.utc).isoformat(),"source":"RapidAPI tennis v2"}
+            (DATA/(tour+"-today.json")).write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+        except Exception as e:
+            fixture_errors.append(tour+": "+str(e)[:100])
+            payload=old
         fixtures += [(tour,m) for m in payload.get("data",[]) if isinstance(m,dict)]
     players={}
     for tour,m in fixtures:
@@ -107,7 +117,7 @@ def main():
     now=datetime.now(timezone.utc).isoformat()
     pending=[(k,*v) for k,v in players.items() if not fresh(cache.get(k,{ }))]
     pending.sort(key=lambda x:(0 if x[0] not in cache else 1,x[0]))
-    updated=0;errors=[]
+    updated=0;errors=fixture_errors[:]
     for k,tour,pid,name in pending[:BUDGET]:
         old=cache.get(k,{})
         try:
@@ -155,7 +165,7 @@ def main():
             if "authorization/quota" in str(e):break
     if h2h_updated:(DATA/"h2h-cache.json").write_text(json.dumps(h2h,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     report={"updatedAt":now,"fixturePlayers":len(players),"cached":sum(k in cache for k in players),
-      "refreshedThisRun":updated,"h2hRefreshed":h2h_updated,"requestsUsed":REQUEST_COUNT,"requestLimit":REQUEST_LIMIT,"remaining":len(pending)-updated,"errors":errors[:20],
+      "refreshedThisRun":updated,"h2hRefreshed":h2h_updated,"requestsUsed":REQUEST_COUNT,"fixtures":len(fixtures),"fixtureErrors":fixture_errors,"requestLimit":REQUEST_LIMIT,"remaining":len(pending)-updated,"errors":errors[:20],
       "note":"No guessed rankings or percentages. API match-stats endpoint is not necessarily current-season only."}
     (DATA/"player-pipeline-status.json").write_text(json.dumps(report,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(report))
