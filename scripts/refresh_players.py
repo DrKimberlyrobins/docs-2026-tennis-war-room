@@ -115,8 +115,25 @@ def main():
             pid=p.get("id") or m.get("player"+str(side)+"Id")
             if pid:players[tour+":"+str(pid)]=(tour,str(pid),p.get("name"))
     now=datetime.now(timezone.utc).isoformat()
-    pending=[(k,*v) for k,v in players.items() if not fresh(cache.get(k,{ }))]
-    pending.sort(key=lambda x:(0 if x[0] not in cache else 1,x[0]))
+    # Prioritize complete matchups rather than scattering profiles across the entire calendar.
+    # Fixtures are ordered by event date; already cached players get preference.
+    ordered=[]
+    seen=set()
+    for tour,m in sorted(fixtures,key=lambda item:str(item[1].get("date") or "9999")):
+        ids=[]
+        for side in (1,2):
+            obj=m.get("player"+str(side)) or {}
+            pid=obj.get("id") or m.get("player"+str(side)+"Id")
+            if pid:ids.append(tour+":"+str(pid))
+        if len(ids)!=2:continue
+        for key in ids:
+            if key in players and key not in seen and not fresh(cache.get(key,{})):
+                ordered.append((key,*players[key]))
+                seen.add(key)
+    for key,value in players.items():
+        if key not in seen and not fresh(cache.get(key,{})):
+            ordered.append((key,*value))
+    pending=ordered
     updated=0;errors=fixture_errors[:]
     for k,tour,pid,name in pending[:BUDGET]:
         old=cache.get(k,{})
@@ -165,7 +182,7 @@ def main():
             if "authorization/quota" in str(e):break
     if h2h_updated:(DATA/"h2h-cache.json").write_text(json.dumps(h2h,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     report={"updatedAt":now,"fixturePlayers":len(players),"cached":sum(k in cache for k in players),
-      "refreshedThisRun":updated,"h2hRefreshed":h2h_updated,"requestsUsed":REQUEST_COUNT,"fixtures":len(fixtures),"fixtureErrors":fixture_errors,"requestLimit":REQUEST_LIMIT,"remaining":len(pending)-updated,"errors":errors[:20],
+      "refreshedThisRun":updated,"h2hRefreshed":h2h_updated,"requestsUsed":REQUEST_COUNT,"fixtures":len(fixtures),"fixtureErrors":fixture_errors,"requestLimit":REQUEST_LIMIT,"remaining":len(pending)-updated,"coveragePercent":round(100*sum(k in cache for k in players)/max(1,len(players)),2),"errors":errors[:20],
       "note":"No guessed rankings or percentages. API match-stats endpoint is not necessarily current-season only."}
     (DATA/"player-pipeline-status.json").write_text(json.dumps(report,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(report))
