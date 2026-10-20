@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/"data"
 HOST="tennis-api-atp-wta-itf.p.rapidapi.com"
-KEY=os.getenv("RAPIDAPI_KEY","")
+KEY="".join(os.getenv("RAPIDAPI_KEY","").split())  # GitHub secrets may contain copied line breaks
 BUDGET=int(os.getenv("TENNIS_PLAYER_BUDGET","8"))
 REQUEST_LIMIT=int(os.getenv("TENNIS_REQUEST_LIMIT","45"))
 REQUEST_COUNT=0
