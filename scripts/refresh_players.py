@@ -11,12 +11,17 @@ ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/"data"
 HOST="tennis-api-atp-wta-itf.p.rapidapi.com"
 KEY=os.getenv("RAPIDAPI_KEY","")
-BUDGET=int(os.getenv("TENNIS_PLAYER_BUDGET","25"))
+BUDGET=int(os.getenv("TENNIS_PLAYER_BUDGET","8"))
+REQUEST_LIMIT=int(os.getenv("TENNIS_REQUEST_LIMIT","45"))
+REQUEST_COUNT=0
 MAX_AGE=int(os.getenv("TENNIS_CACHE_MAX_HOURS","96"))
 def read(path,default):
     try:return json.loads((DATA/path).read_text(encoding="utf-8"))
     except (FileNotFoundError,json.JSONDecodeError):return default
 def fetch(path,query=None):
+    global REQUEST_COUNT
+    if REQUEST_COUNT>=REQUEST_LIMIT:raise RuntimeError("Daily request safety budget exhausted")
+    REQUEST_COUNT+=1
     if not KEY:raise RuntimeError("Missing RAPIDAPI_KEY secret; no fabricated player data.")
     url="https://"+HOST+"/tennis/v2/"+path
     if query:url+="?"+urllib.parse.urlencode(query)
@@ -106,7 +111,7 @@ def main():
     for k,tour,pid,name in pending[:BUDGET]:
         old=cache.get(k,{})
         try:
-            profile=fetch(f"{tour}/player/profile/{pid}",{"include":"form,ranking,country"})
+            profile=fetch(f"{tour}/player/profile/{pid}")
             if not valid(profile) or str(profile.get("id"))!=pid:raise ValueError("Profile ID mismatch")
             stats=fetch(f"{tour}/player/match-stats/{pid}")
             past=fetch(f"{tour}/player/past-matches/{pid}",{"include":"round,tournament.court","pageSize":50,"pageNo":1,"filter":"PlayerGroup:singles"})
@@ -124,13 +129,13 @@ def main():
             updated+=1
         except Exception as e:
             errors.append(k+": "+str(e)[:140])
-            if "authorization/quota" in str(e):break
+            if "authorization/quota" in str(e) or "budget exhausted" in str(e):break
             if old:cache[k]=old
         time.sleep(0.15)
     if updated:
         (DATA/"player-cache.json").write_text(json.dumps(cache,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     h2h=read("h2h-cache.json",{})
-    h2h_budget=int(os.getenv("TENNIS_H2H_BUDGET","12"))
+    h2h_budget=int(os.getenv("TENNIS_H2H_BUDGET","0"))
     h2h_updated=0
     for tour,m in fixtures:
         a=str(m.get("player1Id") or (m.get("player1") or {}).get("id") or "")
@@ -150,7 +155,7 @@ def main():
             if "authorization/quota" in str(e):break
     if h2h_updated:(DATA/"h2h-cache.json").write_text(json.dumps(h2h,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     report={"updatedAt":now,"fixturePlayers":len(players),"cached":sum(k in cache for k in players),
-      "refreshedThisRun":updated,"h2hRefreshed":h2h_updated,"remaining":len(pending)-updated,"errors":errors[:20],
+      "refreshedThisRun":updated,"h2hRefreshed":h2h_updated,"requestsUsed":REQUEST_COUNT,"requestLimit":REQUEST_LIMIT,"remaining":len(pending)-updated,"errors":errors[:20],
       "note":"No guessed rankings or percentages. API match-stats endpoint is not necessarily current-season only."}
     (DATA/"player-pipeline-status.json").write_text(json.dumps(report,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(report))
