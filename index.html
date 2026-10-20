@@ -369,9 +369,12 @@ function showVerifiedDetails(match){
   const m=p.recentMatches||[],recent=n=>{const v=m.slice(0,n);return v.length?v.filter(x=>x.win).length+'-'+v.filter(x=>!x.win).length+' ('+v.length+' matches)':'Pending'};
   const court={1:"Hard",2:"Clay",3:"Indoor hard",4:"Carpet",5:"Grass"};
   const surfaces=Object.entries(p.surface2026||{}).map(([id,v])=>esc(v.name||court[id]||id)+': '+esc(v.wins)+'-'+esc(v.losses)).join(' · ')||"Pending";
+  const stats=p.careerStats||p.season2026||{},svc=stats.serviceStats||{},bpS=stats.breakPointsServe||{},bpR=stats.breakPointsRtn||{};
+  const statpct=x=>x&&Number(x.count)>0?(100*Number(x.value)/Number(x.count)).toFixed(1)+'%':'Pending';
+  const serve='<div style="font-size:12px">Serve points won: 1st '+statpct(svc.winningOnFirstServe)+' / 2nd '+statpct(svc.winningOnSecondServe)+' · BP saved '+statpct(bpS.breakPointSave)+' · BP converted '+statpct(bpR.breakPointWon)+'</div>';
   const last=m.slice(0,5).map(x=>'<div style="font-size:12px;margin-top:6px">'+(x.win?'W':'L')+' vs '+esc(x.opponent)+' · '+esc(x.tournament)+' · '+esc(x.date?.slice(0,10))+'</div>').join('');
   const age=p.updatedAt?' · Profile cached '+esc(p.updatedAt.slice(0,10)):'';
-  return '<div><b>'+esc(p.name)+'</b><div>Ranking: '+(rank?'#'+esc(rank):'Unranked / pending')+' · Points: '+esc(points)+'</div><div style="font-size:12px;color:#a9bed1">Ranking date: '+esc(p.rankingDate||pr.curRank?.date||"Unverified")+age+'</div><div>Last 5: '+recent(5)+' · Last 10: '+recent(10)+'</div><div>2026 surfaces: '+surfaces+'</div>'+last+'</div>';
+  return '<div><b>'+esc(p.name)+'</b><div>Ranking: '+(rank?'#'+esc(rank):'Unranked / pending')+' · Points: '+esc(points)+'</div><div style="font-size:12px;color:#a9bed1">Ranking date: '+esc(p.rankingDate||pr.curRank?.date||"Unverified")+age+'</div><div>Last 5: '+recent(5)+' · Last 10: '+recent(10)+'</div><div>2026 surfaces: '+surfaces+'</div>'+serve+last+'</div>';
  };
  const am=a?.recentMatches||[],bm=b?.recentMatches||[];
  const oppA=String(match.player2?.id??match.player2Id),oppB=String(match.player1?.id??match.player1Id);
