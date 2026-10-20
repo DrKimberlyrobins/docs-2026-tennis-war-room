@@ -1,0 +1,138 @@
+#!/usr/bin/env python3
+"""Refresh verified ATP/WTA player intelligence for fixtures, never guess missing values.
+Requires GitHub Actions secret RAPIDAPI_KEY for tennis-api-atp-wta-itf.
+Provider docs: https://docs.tennis-api.com/players
+"""
+import json, os, sys, time, urllib.request, urllib.parse, urllib.error
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
+
+ROOT=Path(__file__).resolve().parents[1]
+DATA=ROOT/"data"
+HOST="tennis-api-atp-wta-itf.p.rapidapi.com"
+KEY=os.getenv("RAPIDAPI_KEY","")
+BUDGET=int(os.getenv("TENNIS_PLAYER_BUDGET","25"))
+MAX_AGE=int(os.getenv("TENNIS_CACHE_MAX_HOURS","96"))
+def read(path,default):
+    try:return json.loads((DATA/path).read_text(encoding="utf-8"))
+    except (FileNotFoundError,json.JSONDecodeError):return default
+def fetch(path,query=None):
+    if not KEY:raise RuntimeError("Missing RAPIDAPI_KEY secret; no fabricated player data.")
+    url="https://"+HOST+"/tennis/v2/"+path
+    if query:url+="?"+urllib.parse.urlencode(query)
+    req=urllib.request.Request(url,headers={"X-RapidAPI-Host":HOST,"X-RapidAPI-Key":KEY,"Accept":"application/json","User-Agent":"DocsTennisWarRoom/2"})
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(req,timeout=25) as resp:
+                obj=json.load(resp)
+            if isinstance(obj,dict) and obj.get("err"):raise ValueError(str(obj["err"]))
+            return obj.get("data") if isinstance(obj,dict) else obj
+        except urllib.error.HTTPError as e:
+            if e.code in (401,403,429):raise RuntimeError("API authorization/quota failure HTTP "+str(e.code)) from e
+            if attempt==2:raise
+        except (TimeoutError,urllib.error.URLError):
+            if attempt==2:raise
+        time.sleep(2**attempt)
+def valid(x):return isinstance(x,dict) and bool(x)
+def number(x):
+    try:
+        if x is None or x=="":return None
+        return float(x)
+    except (ValueError,TypeError):return None
+def percent(n,d):
+    n,d=number(n),number(d)
+    return {"value":n,"count":d} if n is not None and d is not None and d>0 and 0<=n<=d else None
+def normalize_stats(s):
+    if not valid(s):return None
+    service=s.get("serviceStats") or {}
+    bps=s.get("breakPointsServeStats") or {}
+    bpr=s.get("breakPointsRtnStats") or {}
+    first=percent(service.get("winningOnFirstServeGm"),service.get("winningOnFirstServeOfGm"))
+    second=percent(service.get("winningOnSecondServeGm"),service.get("winningOnSecondServeOfGm"))
+    saved=percent(bps.get("breakPointSavedGm"),bps.get("breakPointFacedGm"))
+    converted=percent(bpr.get("breakPointWonGm"),bpr.get("breakPointChanceGm"))
+    return {"serviceStats":{"winningOnFirstServe":first,"winningOnSecondServe":second},
+            "breakPointsServe":{"breakPointSave":saved},
+            "breakPointsRtn":{"breakPointWon":converted}}
+def recent(rows,pid):
+    clean=[]
+    for m in rows if isinstance(rows,list) else []:
+        a=str(m.get("player1Id") or (m.get("player1") or {}).get("id") or "")
+        b=str(m.get("player2Id") or (m.get("player2") or {}).get("id") or "")
+        if str(pid) not in (a,b):continue
+        if str(m.get("result_type","")).lower() in ("walkover","default") or "w/o" in str(m.get("result","")).lower():continue
+        winner=str(m.get("match_winner") or a)
+        if not winner:continue
+        clean.append({"date":m.get("date"),"win":winner==str(pid),
+          "opponent":(m.get("player2") if a==str(pid) else m.get("player1") or {}).get("name") if isinstance(m.get("player2") if a==str(pid) else m.get("player1"),dict) else None,
+          "score":m.get("result"),"surfaceId":(m.get("tournament") or {}).get("courtId"),
+          "tournament":(m.get("tournament") or {}).get("name"),"round":(m.get("round") or {}).get("name") if isinstance(m.get("round"),dict) else None})
+    clean.sort(key=lambda x:x.get("date") or "",reverse=True)
+    return clean[:25]
+def summary(matches,n):
+    subset=matches[:n]
+    return {"wins":sum(m["win"] for m in subset),"losses":sum(not m["win"] for m in subset),"n":len(subset)} if subset else None
+def surface(rows):
+    out={}
+    for year in rows if isinstance(rows,list) else []:
+        if not isinstance(year,dict):continue
+        y=str(year.get("year") or "")
+        if y!="2026":continue
+        for s in year.get("surfaces") or []:
+            if not isinstance(s,dict):continue
+            court=str(s.get("courtId"))
+            out[court]={"name":s.get("court"),"wins":s.get("courtWins"),"losses":s.get("courtLosses"),"year":2026}
+    return out
+def fresh(item):
+    try:return datetime.fromisoformat(item.get("updatedAt","").replace("Z","+00:00"))>datetime.now(timezone.utc)-timedelta(hours=MAX_AGE)
+    except (TypeError,ValueError):return False
+def main():
+    if not KEY:raise RuntimeError("Set RAPIDAPI_KEY as a repository Actions secret before running.")
+    cache=read("player-cache.json",{})
+    fixtures=[]
+    for tour in ("atp","wta"):
+        payload=read(tour+"-today.json",{})
+        fixtures += [(tour,m) for m in payload.get("data",[]) if isinstance(m,dict)]
+    players={}
+    for tour,m in fixtures:
+        for side in (1,2):
+            p=m.get("player"+str(side)) or {}
+            pid=p.get("id") or m.get("player"+str(side)+"Id")
+            if pid:players[tour+":"+str(pid)]=(tour,str(pid),p.get("name"))
+    now=datetime.now(timezone.utc).isoformat()
+    pending=[(k,*v) for k,v in players.items() if not fresh(cache.get(k,{ }))]
+    pending.sort(key=lambda x:(0 if x[0] not in cache else 1,x[0]))
+    updated=0;errors=[]
+    for k,tour,pid,name in pending[:BUDGET]:
+        old=cache.get(k,{})
+        try:
+            profile=fetch(f"{tour}/player/profile/{pid}",{"include":"form,ranking,country"})
+            if not valid(profile) or str(profile.get("id"))!=pid:raise ValueError("Profile ID mismatch")
+            stats=fetch(f"{tour}/player/match-stats/{pid}")
+            past=fetch(f"{tour}/player/past-matches/{pid}",{"include":"round,tournament.court","pageSize":50,"pageNo":1,"filter":"PlayerGroup:singles"})
+            surfaces=fetch(f"{tour}/player/surface-summary/{pid}")
+            matches=recent(past,pid)
+            profile["form"]=["w" if m["win"] else "l" for m in reversed(matches[:10])]
+            season=normalize_stats(stats)
+            cache[k]={"id":pid,"name":profile.get("name") or name,"tour":tour.upper(),
+                "profile":profile,"season2026":season or {},
+                "recent5":summary(matches,5),"recent10":summary(matches,10),
+                "recentMatches":matches,"surface2026":surface(surfaces),
+                "rankingPoints":profile.get("points"),"rankingDate":profile.get("rankingDate") or (profile.get("curRank") or {}).get("date"),
+                "sources":{"profile":"provider-profile","season":"provider-match-stats (aggregation scope not guaranteed to be 2026)","recent":"provider-past-matches","surface":"provider-surface-summary"},
+                "updatedAt":now}
+            updated+=1
+        except Exception as e:
+            errors.append(k+": "+str(e)[:140])
+            if "authorization/quota" in str(e):break
+            if old:cache[k]=old
+        time.sleep(0.15)
+    if updated:
+        (DATA/"player-cache.json").write_text(json.dumps(cache,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    report={"updatedAt":now,"fixturePlayers":len(players),"cached":sum(k in cache for k in players),
+      "refreshedThisRun":updated,"remaining":len(pending)-updated,"errors":errors[:20],
+      "note":"No guessed rankings or percentages. API match-stats endpoint is not necessarily current-season only."}
+    (DATA/"player-pipeline-status.json").write_text(json.dumps(report,indent=2)+"\n",encoding="utf-8")
+    print(json.dumps(report))
+    if errors and not updated:sys.exit(1)
+if __name__=="__main__":main()
