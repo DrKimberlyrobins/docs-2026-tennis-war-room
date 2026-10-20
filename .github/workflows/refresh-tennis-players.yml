@@ -1,0 +1,26 @@
+name: Refresh Tennis Players
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '10 11 * * *'
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Refresh tennis player data
+        env:
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+          TENNIS_PLAYER_BUDGET: '25'
+        run: python scripts/refresh_players.py
+      - name: Commit verified updates
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/player-cache.json data/player-pipeline-status.json
+          git diff --cached --quiet || (git commit -m 'Refresh tennis player data' && git push)
