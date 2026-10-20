@@ -115,11 +115,11 @@ def main():
             profile["form"]=["w" if m["win"] else "l" for m in reversed(matches[:10])]
             season=normalize_stats(stats)
             cache[k]={"id":pid,"name":profile.get("name") or name,"tour":tour.upper(),
-                "profile":profile,"season2026":season or {},
+                "profile":profile,"season2026":{}, "careerStats":season or {},
                 "recent5":summary(matches,5),"recent10":summary(matches,10),
                 "recentMatches":matches,"surface2026":surface(surfaces),
                 "rankingPoints":profile.get("points"),"rankingDate":profile.get("rankingDate") or (profile.get("curRank") or {}).get("date"),
-                "sources":{"profile":"provider-profile","season":"provider-match-stats (aggregation scope not guaranteed to be 2026)","recent":"provider-past-matches","surface":"provider-surface-summary"},
+                "sources":{"profile":"provider-profile","career":"provider-match-stats (aggregation scope not guaranteed to be 2026)","recent":"provider-past-matches","surface":"provider-surface-summary"},
                 "updatedAt":now}
             updated+=1
         except Exception as e:
@@ -129,10 +129,30 @@ def main():
         time.sleep(0.15)
     if updated:
         (DATA/"player-cache.json").write_text(json.dumps(cache,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    h2h=read("h2h-cache.json",{})
+    h2h_budget=int(os.getenv("TENNIS_H2H_BUDGET","12"))
+    h2h_updated=0
+    for tour,m in fixtures:
+        a=str(m.get("player1Id") or (m.get("player1") or {}).get("id") or "")
+        b=str(m.get("player2Id") or (m.get("player2") or {}).get("id") or "")
+        if not a or not b or h2h_updated>=h2h_budget:continue
+        key=tour+":"+a+":"+b
+        if fresh(h2h.get(key,{})):continue
+        try:
+            info=fetch(f"{tour}/h2h/info/{a}/{b}",{"includeAll":"true"})
+            meetings=fetch(f"{tour}/h2h/matches/{a}/{b}",{"includeAll":"true","include":"round,tournament.court"})
+            if not isinstance(info,list):info=[]
+            if not isinstance(meetings,list):meetings=[]
+            h2h[key]={"updatedAt":now,"player1Id":a,"player2Id":b,"tour":tour,"surfaces":info,"meetings":meetings[:20],"scope":"All levels including ITF and Challenger"}
+            h2h_updated+=1
+        except Exception as e:
+            errors.append(key+" H2H: "+str(e)[:100])
+            if "authorization/quota" in str(e):break
+    if h2h_updated:(DATA/"h2h-cache.json").write_text(json.dumps(h2h,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
     report={"updatedAt":now,"fixturePlayers":len(players),"cached":sum(k in cache for k in players),
-      "refreshedThisRun":updated,"remaining":len(pending)-updated,"errors":errors[:20],
+      "refreshedThisRun":updated,"h2hRefreshed":h2h_updated,"remaining":len(pending)-updated,"errors":errors[:20],
       "note":"No guessed rankings or percentages. API match-stats endpoint is not necessarily current-season only."}
     (DATA/"player-pipeline-status.json").write_text(json.dumps(report,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(report))
-    if errors and not updated:sys.exit(1)
+    if errors and not updated and not h2h_updated:sys.exit(1)
 if __name__=="__main__":main()
