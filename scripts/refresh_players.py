@@ -11,7 +11,7 @@ ROOT=Path(__file__).resolve().parents[1]
 DATA=ROOT/"data"
 HOST="tennis-api-atp-wta-itf.p.rapidapi.com"
 KEY="".join(os.getenv("RAPIDAPI_KEY","").split())  # GitHub secrets may contain copied line breaks
-BUDGET=int(os.getenv("TENNIS_PLAYER_BUDGET","8"))
+BUDGET=int(os.getenv("TENNIS_PLAYER_BUDGET","40"))
 REQUEST_LIMIT=int(os.getenv("TENNIS_REQUEST_LIMIT","45"))
 REQUEST_COUNT=0
 MAX_AGE=int(os.getenv("TENNIS_CACHE_MAX_HOURS","96"))
@@ -135,23 +135,23 @@ def main():
             ordered.append((key,*value))
     pending=ordered
     updated=0;errors=fixture_errors[:]
-    for k,tour,pid,name in pending[:BUDGET]:
+    for k,tour,pid,name in pending[:min(BUDGET,max(0,REQUEST_LIMIT-REQUEST_COUNT))]:
         old=cache.get(k,{})
         try:
             profile=fetch(f"{tour}/player/profile/{pid}")
             if not valid(profile) or str(profile.get("id"))!=pid:raise ValueError("Profile ID mismatch")
-            stats=fetch(f"{tour}/player/match-stats/{pid}")
-            past=fetch(f"{tour}/player/past-matches/{pid}",{"include":"round,tournament.court","pageSize":50,"pageNo":1,"filter":"PlayerGroup:singles"})
-            surfaces=fetch(f"{tour}/player/surface-summary/{pid}")
+            stats={} # optional detailed stats deferred for wider profile coverage
+            past=[] # optional match history deferred for wider profile coverage
+            surfaces=[] # optional surface stats deferred for wider profile coverage
             matches=recent(past,pid)
             profile["form"]=["w" if m["win"] else "l" for m in reversed(matches[:10])]
             season=normalize_stats(stats)
             cache[k]={"id":pid,"name":profile.get("name") or name,"tour":tour.upper(),
-                "profile":profile,"season2026":{}, "careerStats":season or {},
-                "recent5":summary(matches,5),"recent10":summary(matches,10),
-                "recentMatches":matches,"surface2026":surface(surfaces),
+                "profile":profile,"season2026":old.get("season2026",{}), "careerStats":old.get("careerStats",{}),
+                "recent5":old.get("recent5"),"recent10":old.get("recent10"),
+                "recentMatches":old.get("recentMatches",[]),"surface2026":old.get("surface2026",{}),
                 "rankingPoints":profile.get("points"),"rankingDate":profile.get("rankingDate") or (profile.get("curRank") or {}).get("date"),
-                "sources":{"profile":"provider-profile","career":"provider-match-stats (aggregation scope not guaranteed to be 2026)","recent":"provider-past-matches","surface":"provider-surface-summary"},
+                "sources":{"profile":"provider-profile","details":"previously cached if present; otherwise pending"},
                 "updatedAt":now}
             updated+=1
         except Exception as e:
