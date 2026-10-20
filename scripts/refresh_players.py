@@ -148,7 +148,7 @@ def main():
         except Exception as e:
             errors.append(key+" H2H: "+str(e)[:100])
             if "authorization/quota" in str(e):break
-    if h2h_updated:(DATA/"h2h-cache.json").write_text(json.dumps(h2h,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+    if h2h_updated:(DATA/"h2h-cache.json").write_text(json.dumps(h2h,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     report={"updatedAt":now,"fixturePlayers":len(players),"cached":sum(k in cache for k in players),
       "refreshedThisRun":updated,"h2hRefreshed":h2h_updated,"remaining":len(pending)-updated,"errors":errors[:20],
       "note":"No guessed rankings or percentages. API match-stats endpoint is not necessarily current-season only."}
