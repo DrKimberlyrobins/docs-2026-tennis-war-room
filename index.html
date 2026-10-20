@@ -137,6 +137,7 @@ h1{font-size:24px}
 
 let allMatches=[];
 let playerCache={};
+let h2hCache={};
 const $=id=>document.getElementById(id);
 
 function unwrap(obj){
@@ -376,7 +377,10 @@ function showVerifiedDetails(match){
  const oppA=String(match.player2?.id??match.player2Id),oppB=String(match.player1?.id??match.player1Id);
  const h2hA=am.filter(x=>x.opponentId&&String(x.opponentId)===oppA);
  const h2hB=bm.filter(x=>x.opponentId&&String(x.opponentId)===oppB);
- const meetingNote=(h2hA.length||h2hB.length)?'Recent cached meetings only (not career H2H).':'Head-to-head: pending verified historical meetings.';
+ const h=h2hCache[match.tour.toLowerCase()+':'+oppB+':'+oppA];
+ const rows=Array.isArray(h?.surfaces)?h.surfaces:[];
+ const h1=rows.reduce((s,x)=>s+(Number(x.player1wins)||0),0),h2=rows.reduce((s,x)=>s+(Number(x.player2wins)||0),0);
+ const meetingNote=h?'Verified H2H (all levels): '+h1+'-'+h2+'; '+(h.meetings?.length||0)+' matches in cache':'Head-to-head: pending verified historical meetings.';
  el.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px">'+show(a)+show(b)+'</div><div class="note" style="margin-top:12px">'+meetingNote+' Rankings and points are source snapshots; missing values are not estimates. Serve and break-point statistics are shown above only where supplied.</div>';
 }
 function showComparison(match){
@@ -515,6 +519,7 @@ async function loadData(){
       responses.map(r=>r.json())
     );
 
+    try { const hr=await fetch("data/h2h-cache.json?v="+bust); if(hr.ok)h2hCache=await hr.json(); } catch(e) { console.warn("H2H not loaded",e); }
     playerCache=cache&&typeof cache==="object"&&!Array.isArray(cache)
       ?cache:{};
 
