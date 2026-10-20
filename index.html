@@ -105,7 +105,7 @@ h1{font-size:24px}
 <a href="https://www.atptour.com/en/rankings/singles" target="_blank" rel="noopener" style="color:#32e889">Official ATP Rankings ↗</a>
 <a href="https://www.wtatennis.com/rankings/singles" target="_blank" rel="noopener" style="color:#32e889">Official WTA Rankings ↗</a>
 </div>
-<div class="section">Not Yet Proven</div>
+<div class="section">VERIFIED PLAYER INTELLIGENCE</div><div id="verifiedDetail" class="panel" style="margin-bottom:14px">Choose a matchup to view rankings, points, recent form, surfaces, and recent meetings.</div><div class="section">Not Yet Proven</div>
 <div class="cards">
 <div class="card"><div>OVERALL ELO</div><strong class="pending">Pending</strong></div>
 <div class="card"><div>SURFACE ELO</div><strong class="pending">Pending</strong></div>
@@ -174,7 +174,7 @@ function metrics(player){
     profile.ranking?.position
   );
 
-  const rawForm=Array.isArray(profile.form)?profile.form:[];
+  const rawForm=Array.isArray(player.recentMatches)&&player.recentMatches.length ? player.recentMatches.slice(0,10).map(m=>m.win?"w":"l").reverse() : Array.isArray(profile.form)?profile.form:[];
   const form=rawForm.map(v=>String(v).toLowerCase())
     .filter(v=>v==="w"||v==="l").slice(-10);
   const wins=form.filter(v=>v==="w").length;
@@ -358,6 +358,27 @@ const definitions=[
   {key:"converted",label:"2026 BREAK POINTS CONVERTED",threshold:4,format:percent}
 ];
 
+function showVerifiedDetails(match){
+ const a=getPlayer(match,"player1"),b=getPlayer(match,"player2"),el=$("verifiedDetail");
+ if(!el)return;
+ const esc=s=>String(s??"—").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+ const show=p=>{
+  if(!p)return '<div style="color:#ffad93">Unverified profile — no data cached</div>';
+  const pr=p.profile||{}, rank=pr.curRank?.position??pr.currentRank??null,points=p.rankingPoints??pr.points??null;
+  const m=p.recentMatches||[],recent=n=>{const v=m.slice(0,n);return v.length?v.filter(x=>x.win).length+'-'+v.filter(x=>!x.win).length+' ('+v.length+' matches)':'Pending'};
+  const court={1:"Hard",2:"Clay",3:"Indoor hard",4:"Carpet",5:"Grass"};
+  const surfaces=Object.entries(p.surface2026||{}).map(([id,v])=>esc(v.name||court[id]||id)+': '+esc(v.wins)+'-'+esc(v.losses)).join(' · ')||"Pending";
+  const last=m.slice(0,5).map(x=>'<div style="font-size:12px;margin-top:6px">'+(x.win?'W':'L')+' vs '+esc(x.opponent)+' · '+esc(x.tournament)+' · '+esc(x.date?.slice(0,10))+'</div>').join('');
+  const age=p.updatedAt?' · Profile cached '+esc(p.updatedAt.slice(0,10)):'';
+  return '<div><b>'+esc(p.name)+'</b><div>Ranking: '+(rank?'#'+esc(rank):'Unranked / pending')+' · Points: '+esc(points)+'</div><div style="font-size:12px;color:#a9bed1">Ranking date: '+esc(p.rankingDate||pr.curRank?.date||"Unverified")+age+'</div><div>Last 5: '+recent(5)+' · Last 10: '+recent(10)+'</div><div>2026 surfaces: '+surfaces+'</div>'+last+'</div>';
+ };
+ const am=a?.recentMatches||[],bm=b?.recentMatches||[];
+ const oppA=String(match.player2?.id??match.player2Id),oppB=String(match.player1?.id??match.player1Id);
+ const h2hA=am.filter(x=>x.opponentId&&String(x.opponentId)===oppA);
+ const h2hB=bm.filter(x=>x.opponentId&&String(x.opponentId)===oppB);
+ const meetingNote=(h2hA.length||h2hB.length)?'Recent cached meetings only (not career H2H).':'Head-to-head: pending verified historical meetings.';
+ el.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px">'+show(a)+show(b)+'</div><div class="note" style="margin-top:12px">'+meetingNote+' Rankings and points are source snapshots; missing values are not estimates. Serve and break-point statistics are shown above only where supplied.</div>';
+}
 function showComparison(match){
   const a=metrics(getPlayer(match,"player1"));
   const b=metrics(getPlayer(match,"player2"));
@@ -464,6 +485,7 @@ function showMatch(index){
 
   $("matchInfo").textContent=info.join(" • ");
   showComparison(match);
+  showVerifiedDetails(match);
 }
 
 function updateCoverage(){
