@@ -14,7 +14,7 @@ KEY="".join(os.getenv("RAPIDAPI_KEY","").split())  # GitHub secrets may contain 
 BUDGET=int(os.getenv("TENNIS_PLAYER_BUDGET","40"))
 REQUEST_LIMIT=int(os.getenv("TENNIS_REQUEST_LIMIT","45"))
 REQUEST_COUNT=0
-MAX_AGE=int(os.getenv("TENNIS_CACHE_MAX_HOURS","96"))
+MAX_AGE=int(os.getenv("TENNIS_CACHE_MAX_HOURS","168"))
 def read(path,default):
     try:return json.loads((DATA/path).read_text(encoding="utf-8"))
     except (FileNotFoundError,json.JSONDecodeError):return default
@@ -158,7 +158,9 @@ def main():
             if pid and key in players and key not in seen and not fresh(cache.get(key,{})):
                 ordered.append((key,*players[key]))
                 seen.add(key)
-    pending=ordered
+    # Uncached players first: stale but available profiles must not crowd out missing opponents.
+    # Preserve match priority by sorting within the immediate 48h and later buckets.
+    pending=[item for item in ordered if item[0] not in cache]+[item for item in ordered if item[0] in cache]
     updated=0;errors=fixture_errors[:]
     for k,tour,pid,name in pending[:min(BUDGET,max(0,REQUEST_LIMIT-REQUEST_COUNT))]:
         old=cache.get(k,{})
