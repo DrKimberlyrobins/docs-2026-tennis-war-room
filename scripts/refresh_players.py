@@ -115,11 +115,29 @@ def main():
             pid=p.get("id") or m.get("player"+str(side)+"Id")
             if pid:players[tour+":"+str(pid)]=(tour,str(pid),p.get("name"))
     now=datetime.now(timezone.utc).isoformat()
-    # Prioritize complete matchups rather than scattering profiles across the entire calendar.
-    # Fixtures are ordered by event date; already cached players get preference.
+    # Fetch players for imminent FUTURE matches first. Never spend scarce requests
+    # refreshing yesterday's fixtures while today's pre-match profiles are missing.
+    # Keep both sides of each match adjacent, so a matchup becomes usable.
     ordered=[]
     seen=set()
-    for tour,m in sorted(fixtures,key=lambda item:str(item[1].get("date") or "9999")):
+    current=datetime.now(timezone.utc)
+    def fixture_priority(item):
+        tour,m=item
+        raw=m.get("startTime") or m.get("date") or ""
+        try:
+            dt=datetime.fromisoformat(str(raw).replace("Z","+00:00"))
+            if dt.tzinfo is None:dt=dt.replace(tzinfo=timezone.utc)
+            hours=(dt-current).total_seconds()/3600
+        except (ValueError,TypeError):
+            hours=999999
+        # 0-48h upcoming, then 2-7 days, then later, then past matches.
+        if 0<=hours<=48:bucket=0
+        elif 48<hours<=168:bucket=1
+        elif hours>168:bucket=2
+        else:bucket=3
+        return (bucket,abs(hours))
+    for tour,m in sorted(fixtures,key=fixture_priority):
+        if fixture_priority((tour,m))[0]==3:continue
         ids=[]
         for side in (1,2):
             obj=m.get("player"+str(side)) or {}
@@ -130,9 +148,16 @@ def main():
             if key in players and key not in seen and not fresh(cache.get(key,{})):
                 ordered.append((key,*players[key]))
                 seen.add(key)
-    for key,value in players.items():
-        if key not in seen and not fresh(cache.get(key,{})):
-            ordered.append((key,*value))
+    # Remaining active fixtures only; don't consume quota on old matches.
+    for tour,m in sorted(fixtures,key=fixture_priority):
+        if fixture_priority((tour,m))[0]==3:continue
+        for side in (1,2):
+            p=m.get("player"+str(side)) or {}
+            pid=p.get("id") or m.get("player"+str(side)+"Id")
+            key=tour+":"+str(pid)
+            if pid and key in players and key not in seen and not fresh(cache.get(key,{})):
+                ordered.append((key,*players[key]))
+                seen.add(key)
     pending=ordered
     updated=0;errors=fixture_errors[:]
     for k,tour,pid,name in pending[:min(BUDGET,max(0,REQUEST_LIMIT-REQUEST_COUNT))]:
@@ -182,7 +207,7 @@ def main():
             if "authorization/quota" in str(e):break
     if h2h_updated:(DATA/"h2h-cache.json").write_text(json.dumps(h2h,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     report={"updatedAt":now,"fixturePlayers":len(players),"cached":sum(k in cache for k in players),
-      "refreshedThisRun":updated,"h2hRefreshed":h2h_updated,"requestsUsed":REQUEST_COUNT,"fixtures":len(fixtures),"fixtureErrors":fixture_errors,"requestLimit":REQUEST_LIMIT,"remaining":len(pending)-updated,"coveragePercent":round(100*sum(k in cache for k in players)/max(1,len(players)),2),"errors":errors[:20],
+      "refreshedThisRun":updated,"h2hRefreshed":h2h_updated,"requestsUsed":REQUEST_COUNT,"fixtures":len(fixtures),"fixtureErrors":fixture_errors,"requestLimit":REQUEST_LIMIT,"remaining":len(pending)-updated,"selectionPolicy":"Upcoming 48 hours first, then next 7 days; past matches excluded","coveragePercent":round(100*sum(k in cache for k in players)/max(1,len(players)),2),"errors":errors[:20],
       "note":"No guessed rankings or percentages. API match-stats endpoint is not necessarily current-season only."}
     (DATA/"player-pipeline-status.json").write_text(json.dumps(report,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(report))
