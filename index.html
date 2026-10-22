@@ -71,6 +71,7 @@ h1{font-size:24px}
 <main>
 <section class="panel">
 <div class="heading">SEARCH TODAY & UPCOMING MATCHES — CENTRAL TIME</div>
+<div id="pipelineAlert" class="note" style="border:1px solid #81592c;background:#302313;padding:12px;border-radius:9px;margin-bottom:12px">Checking data pipeline status…</div>
 <input id="matchSearch" type="search" placeholder="🔎 Type a player name or tournament..." autocomplete="off">
 <select id="matchSelect" size="9" aria-label="Tennis match results">
 <option>Loading matches...</option>
@@ -507,7 +508,26 @@ function updateCoverage(){
  if(box)box.innerHTML='<div class="card"><div>FIXTURES</div><strong>'+total+'</strong></div><div class="card"><div>PLAYER PROFILES FOUND</div><strong>'+cached+' / '+ids.size+'</strong></div><div class="card"><div>FULLY COVERED MATCHUPS</div><strong>'+ready+' / '+total+'</strong></div>';
  const note=$("coverageNote");if(note)note.textContent=ready===0?"No matchup has two cached profiles. Rankings, serve statistics and probabilities must remain unqualified until verified.":"Coverage is partial. Only verified fields may be compared. Rankings must come from a dated ATP/WTA source.";
 }
+async function showPipelineStatus(){
+ const el=$("pipelineAlert");
+ try{
+  const response=await fetch("data/player-pipeline-status.json?v="+Date.now());
+  if(!response.ok)throw Error("status unavailable");
+  const p=await response.json();
+  const last=Date.parse(p.updatedAt||"");
+  const hours=Number.isFinite(last)?Math.round((Date.now()-last)/3600000):null;
+  const quota=(p.errors||[]).some(e=>/429|quota|authorization/i.test(e));
+  const stale=hours===null||hours>12;
+  const coverage=Number(p.coveragePercent);
+  el.textContent=(quota?"API RATE LIMIT / QUOTA ERROR. ":"")+(stale?"PLAYER DATA REFRESH IS STALE. ":"")+
+   "Latest player refresh: "+(Number.isFinite(last)?new Date(last).toLocaleString("en-US",{timeZone:"America/Chicago",dateStyle:"medium",timeStyle:"short"})+" Central":"unknown")+
+   ". Reported coverage: "+(Number.isFinite(coverage)?coverage.toFixed(1)+"%":"unknown")+
+   ". Upcoming match profiles may be missing. Do not treat incomplete comparisons as betting signals.";
+  el.style.display=(quota||stale||coverage<75)?"block":"none";
+ }catch(e){el.textContent="Player-data pipeline status unavailable. Matchup completeness must be verified before use.";}
+}
 async function loadData(){
+ showPipelineStatus();
   try{
     const bust=Date.now();
 
