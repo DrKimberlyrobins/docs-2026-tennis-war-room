@@ -2,7 +2,8 @@ name: Refresh Tennis Players
 on:
   workflow_dispatch:
   schedule:
-    - cron: '10 11 * * *'
+    - cron: '10 8 * * *'
+    - cron: '10 15 * * *'
 permissions:
   contents: write
 jobs:
@@ -16,8 +17,8 @@ jobs:
       - name: Refresh tennis player data
         env:
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
-          TENNIS_PLAYER_BUDGET: '40'
-          TENNIS_REQUEST_LIMIT: '45'
+          TENNIS_PLAYER_BUDGET: '18'
+          TENNIS_REQUEST_LIMIT: '20'
           TENNIS_H2H_BUDGET: '0'
         run: python scripts/refresh_players.py
       - name: Commit verified updates
