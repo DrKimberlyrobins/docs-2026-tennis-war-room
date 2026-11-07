@@ -217,6 +217,56 @@
       }
     },
     {
+      "id": 1248999,
+      "matchId": 1248999,
+      "date": "2026-11-08T13:00:00.000Z",
+      "startTime": "2026-11-08T13:00:00.000Z",
+      "roundId": 12,
+      "player1Id": 60341,
+      "player2Id": 9357,
+      "tournamentId": 16755,
+      "timeGame": "2026-11-08T13:00:00.000Z",
+      "seed1": "1",
+      "seed2": "3",
+      "live": null,
+      "player1": {
+        "id": 60341,
+        "name": "Janice Tjen",
+        "countryAcr": "INA"
+      },
+      "player2": {
+        "id": 9357,
+        "name": "Magda Linette",
+        "countryAcr": "POL"
+      },
+      "tournament": {
+        "id": 16755,
+        "name": "Chennai Open - Chennai",
+        "courtId": 1,
+        "date": "2026-11-02T00:00:00.000Z",
+        "rankId": 2,
+        "countryAcr": "IND",
+        "court": {
+          "id": 1,
+          "name": "Hard"
+        },
+        "rank": {
+          "id": 2,
+          "name": "Main tour"
+        },
+        "country": null
+      },
+      "round": {
+        "id": 12,
+        "name": "Final"
+      },
+      "liveMatchId": "60341-9357-16755-12",
+      "links": {
+        "match": "/tennis/v2/matches/1248999?type=wta&source=today",
+        "live": "/tennis/v2/matches/1248999/live?type=wta&source=today"
+      }
+    },
+    {
       "id": 1238028,
       "matchId": 1238028,
       "date": "2026-11-08T08:00:00.000Z",
@@ -268,6 +318,60 @@
       "links": {
         "match": "/tennis/v2/matches/1238028?type=wta&source=today",
         "live": "/tennis/v2/matches/1238028/live?type=wta&source=today"
+      }
+    },
+    {
+      "id": 1231601,
+      "matchId": 1231601,
+      "date": "2026-11-08T03:00:00.000Z",
+      "startTime": "2026-11-08T03:00:00.000Z",
+      "roundId": 12,
+      "player1Id": 32631,
+      "player2Id": 52261,
+      "tournamentId": 17387,
+      "timeGame": "2026-11-08T03:00:00.000Z",
+      "seed1": "3",
+      "seed2": "2",
+      "live": null,
+      "player1": {
+        "id": 32631,
+        "name": "Katie Swan",
+        "countryAcr": "GBR"
+      },
+      "player2": {
+        "id": 52261,
+        "name": "Yeon Woo Ku",
+        "countryAcr": "KOR"
+      },
+      "tournament": {
+        "id": 17387,
+        "name": "W100 Incheon",
+        "courtId": 1,
+        "date": "2026-11-02T00:00:00.000Z",
+        "rankId": 1,
+        "countryAcr": "KOR",
+        "court": {
+          "id": 1,
+          "name": "Hard"
+        },
+        "rank": {
+          "id": 1,
+          "name": "Challengers/ITF tournaments > $10K"
+        },
+        "country": null
+      },
+      "h2h": {
+        "player1AllWins": 1,
+        "player2AllWins": 0
+      },
+      "round": {
+        "id": 12,
+        "name": "Final"
+      },
+      "liveMatchId": "32631-52261-17387-12",
+      "links": {
+        "match": "/tennis/v2/matches/1231601?type=wta&source=today",
+        "live": "/tennis/v2/matches/1231601/live?type=wta&source=today"
       }
     },
     {
@@ -415,6 +519,56 @@
       "links": {
         "match": "/tennis/v2/matches/1223268?type=wta&source=today",
         "live": "/tennis/v2/matches/1223268/live?type=wta&source=today"
+      }
+    },
+    {
+      "id": 1244779,
+      "matchId": 1244779,
+      "date": "2026-11-07T16:40:00.000Z",
+      "startTime": "2026-11-07T16:40:00.000Z",
+      "roundId": 12,
+      "player1Id": 39226,
+      "player2Id": 49864,
+      "tournamentId": 17380,
+      "timeGame": "2026-11-07T16:40:00.000Z",
+      "seed1": "8",
+      "seed2": null,
+      "live": null,
+      "player1": {
+        "id": 39226,
+        "name": "Bianca Vanessa Andreescu",
+        "countryAcr": "CAN"
+      },
+      "player2": {
+        "id": 49864,
+        "name": "Leyre Romero Gormaz",
+        "countryAcr": "ESP"
+      },
+      "tournament": {
+        "id": 17380,
+        "name": "Cali Open - Cali",
+        "courtId": 2,
+        "date": "2026-11-02T00:00:00.000Z",
+        "rankId": 1,
+        "countryAcr": "COL",
+        "court": {
+          "id": 2,
+          "name": "Clay"
+        },
+        "rank": {
+          "id": 1,
+          "name": "Challengers/ITF tournaments > $10K"
+        },
+        "country": null
+      },
+      "round": {
+        "id": 12,
+        "name": "Final"
+      },
+      "liveMatchId": "39226-49864-17380-12",
+      "links": {
+        "match": "/tennis/v2/matches/1244779?type=wta&source=today",
+        "live": "/tennis/v2/matches/1244779/live?type=wta&source=today"
       }
     },
     {
@@ -568,13 +722,13 @@
     {
       "id": 1222860,
       "matchId": 1222860,
-      "date": "2026-11-07T14:43:00.000Z",
-      "startTime": "2026-11-07T14:43:00.000Z",
+      "date": "2026-11-07T14:55:00.000Z",
+      "startTime": "2026-11-07T14:55:00.000Z",
       "roundId": 10,
       "player1Id": 26356,
       "player2Id": 40440,
       "tournamentId": 17388,
-      "timeGame": "2026-11-07T14:43:00.000Z",
+      "timeGame": "2026-11-07T14:55:00.000Z",
       "seed1": null,
       "seed2": "5",
       "live": null,
@@ -668,110 +822,6 @@
       "links": {
         "match": "/tennis/v2/matches/1203799?type=wta&source=today",
         "live": "/tennis/v2/matches/1203799/live?type=wta&source=today"
-      }
-    },
-    {
-      "id": 1238109,
-      "matchId": 1238109,
-      "date": "2026-11-07T14:30:00.000Z",
-      "startTime": "2026-11-07T14:30:00.000Z",
-      "roundId": 10,
-      "player1Id": 34747,
-      "player2Id": 75657,
-      "tournamentId": 17379,
-      "timeGame": "2026-11-07T14:30:00.000Z",
-      "seed1": "1",
-      "seed2": null,
-      "live": null,
-      "player1": {
-        "id": 34747,
-        "name": "Anna Blinkova",
-        "countryAcr": "FRA"
-      },
-      "player2": {
-        "id": 75657,
-        "name": "Gina Feistel",
-        "countryAcr": "POL"
-      },
-      "tournament": {
-        "id": 17379,
-        "name": "Angola Ladies Open - Luanda",
-        "courtId": 1,
-        "date": "2026-11-02T00:00:00.000Z",
-        "rankId": 1,
-        "countryAcr": "ANG",
-        "court": {
-          "id": 1,
-          "name": "Hard"
-        },
-        "rank": {
-          "id": 1,
-          "name": "Challengers/ITF tournaments > $10K"
-        },
-        "country": null
-      },
-      "round": {
-        "id": 10,
-        "name": "1/2"
-      },
-      "liveMatchId": "34747-75657-17379-10",
-      "links": {
-        "match": "/tennis/v2/matches/1238109?type=wta&source=today",
-        "live": "/tennis/v2/matches/1238109/live?type=wta&source=today"
-      }
-    },
-    {
-      "id": 1200523,
-      "matchId": 1200523,
-      "date": "2026-11-07T14:20:00.000Z",
-      "startTime": "2026-11-07T14:20:00.000Z",
-      "roundId": 10,
-      "player1Id": 9357,
-      "player2Id": 52660,
-      "tournamentId": 16755,
-      "timeGame": "2026-11-07T14:20:00.000Z",
-      "seed1": "3",
-      "seed2": "7",
-      "live": null,
-      "player1": {
-        "id": 9357,
-        "name": "Magda Linette",
-        "countryAcr": "POL"
-      },
-      "player2": {
-        "id": 52660,
-        "name": "Anastasia Zakharova",
-        "countryAcr": "RUS"
-      },
-      "tournament": {
-        "id": 16755,
-        "name": "Chennai Open - Chennai",
-        "courtId": 1,
-        "date": "2026-11-02T00:00:00.000Z",
-        "rankId": 2,
-        "countryAcr": "IND",
-        "court": {
-          "id": 1,
-          "name": "Hard"
-        },
-        "rank": {
-          "id": 2,
-          "name": "Main tour"
-        },
-        "country": null
-      },
-      "h2h": {
-        "player1AllWins": 1,
-        "player2AllWins": 0
-      },
-      "round": {
-        "id": 10,
-        "name": "1/2"
-      },
-      "liveMatchId": "9357-52660-16755-10",
-      "links": {
-        "match": "/tennis/v2/matches/1200523?type=wta&source=today",
-        "live": "/tennis/v2/matches/1200523/live?type=wta&source=today"
       }
     },
     {
@@ -880,60 +930,6 @@
       }
     },
     {
-      "id": 1191882,
-      "matchId": 1191882,
-      "date": "2026-11-07T12:35:00.000Z",
-      "startTime": "2026-11-07T12:35:00.000Z",
-      "roundId": 10,
-      "player1Id": 47741,
-      "player2Id": 59575,
-      "tournamentId": 17379,
-      "timeGame": "2026-11-07T12:35:00.000Z",
-      "seed1": "8",
-      "seed2": "2",
-      "live": null,
-      "player1": {
-        "id": 47741,
-        "name": "Sofya Lansere",
-        "countryAcr": "RUS"
-      },
-      "player2": {
-        "id": 59575,
-        "name": "Noma Akugue Noha",
-        "countryAcr": "GER"
-      },
-      "tournament": {
-        "id": 17379,
-        "name": "Angola Ladies Open - Luanda",
-        "courtId": 1,
-        "date": "2026-11-02T00:00:00.000Z",
-        "rankId": 1,
-        "countryAcr": "ANG",
-        "court": {
-          "id": 1,
-          "name": "Hard"
-        },
-        "rank": {
-          "id": 1,
-          "name": "Challengers/ITF tournaments > $10K"
-        },
-        "country": null
-      },
-      "h2h": {
-        "player1AllWins": 1,
-        "player2AllWins": 1
-      },
-      "round": {
-        "id": 10,
-        "name": "1/2"
-      },
-      "liveMatchId": "47741-59575-17379-10",
-      "links": {
-        "match": "/tennis/v2/matches/1191882?type=wta&source=today",
-        "live": "/tennis/v2/matches/1191882/live?type=wta&source=today"
-      }
-    },
-    {
       "id": 1192550,
       "matchId": 1192550,
       "date": "2026-11-07T10:05:00.000Z",
@@ -978,200 +974,6 @@
       "links": {
         "match": "/tennis/v2/matches/1192550?type=wta&source=today",
         "live": "/tennis/v2/matches/1192550/live?type=wta&source=today"
-      }
-    },
-    {
-      "id": 1203541,
-      "matchId": 1203541,
-      "date": "2026-11-07T10:05:00.000Z",
-      "startTime": "2026-11-07T10:05:00.000Z",
-      "roundId": 10,
-      "player1Id": 88202,
-      "player2Id": 102035,
-      "tournamentId": 17395,
-      "timeGame": "2026-11-07T10:05:00.000Z",
-      "seed1": null,
-      "seed2": "WC",
-      "live": null,
-      "player1": {
-        "id": 88202,
-        "name": "Melinda Biro",
-        "countryAcr": "ROU"
-      },
-      "player2": {
-        "id": 102035,
-        "name": "Emese Serkedi",
-        "countryAcr": "HUN"
-      },
-      "tournament": {
-        "id": 17395,
-        "name": "W15 Szabolcsveresmart",
-        "courtId": 3,
-        "date": "2026-11-02T00:00:00.000Z",
-        "rankId": 0,
-        "countryAcr": "HUN",
-        "court": {
-          "id": 3,
-          "name": "I.hard"
-        },
-        "rank": null,
-        "country": null
-      },
-      "round": {
-        "id": 10,
-        "name": "1/2"
-      },
-      "liveMatchId": "88202-102035-17395-10",
-      "links": {
-        "match": "/tennis/v2/matches/1203541?type=wta&source=today",
-        "live": "/tennis/v2/matches/1203541/live?type=wta&source=today"
-      }
-    },
-    {
-      "id": 1192118,
-      "matchId": 1192118,
-      "date": "2026-11-07T09:42:00.000Z",
-      "startTime": "2026-11-07T09:42:00.000Z",
-      "roundId": 10,
-      "player1Id": 26145,
-      "player2Id": 42096,
-      "tournamentId": 17389,
-      "timeGame": "2026-11-07T09:42:00.000Z",
-      "seed1": null,
-      "seed2": "2",
-      "live": null,
-      "player1": {
-        "id": 26145,
-        "name": "Raluca Georgiana Serban",
-        "countryAcr": "CYP"
-      },
-      "player2": {
-        "id": 42096,
-        "name": "Nuria Brancaccio",
-        "countryAcr": "ITA"
-      },
-      "tournament": {
-        "id": 17389,
-        "name": "W50 Heraklion",
-        "courtId": 2,
-        "date": "2026-11-02T00:00:00.000Z",
-        "rankId": 1,
-        "countryAcr": "GRE",
-        "court": {
-          "id": 2,
-          "name": "Clay"
-        },
-        "rank": {
-          "id": 1,
-          "name": "Challengers/ITF tournaments > $10K"
-        },
-        "country": null
-      },
-      "round": {
-        "id": 10,
-        "name": "1/2"
-      },
-      "liveMatchId": "26145-42096-17389-10",
-      "links": {
-        "match": "/tennis/v2/matches/1192118?type=wta&source=today",
-        "live": "/tennis/v2/matches/1192118/live?type=wta&source=today"
-      }
-    },
-    {
-      "id": 1192621,
-      "matchId": 1192621,
-      "date": "2026-11-07T09:08:00.000Z",
-      "startTime": "2026-11-07T09:08:00.000Z",
-      "roundId": 10,
-      "player1Id": 83963,
-      "player2Id": 71233,
-      "tournamentId": 17396,
-      "timeGame": "2026-11-07T09:08:00.000Z",
-      "seed1": "8",
-      "seed2": "2",
-      "live": null,
-      "player1": {
-        "id": 83963,
-        "name": "Anastasia Lizunova",
-        "countryAcr": "RUS"
-      },
-      "player2": {
-        "id": 71233,
-        "name": "Astrid Cirotte",
-        "countryAcr": "FRA"
-      },
-      "tournament": {
-        "id": 17396,
-        "name": "W15 Monastir",
-        "courtId": 1,
-        "date": "2026-11-02T00:00:00.000Z",
-        "rankId": 0,
-        "countryAcr": "TUN",
-        "court": {
-          "id": 1,
-          "name": "Hard"
-        },
-        "rank": null,
-        "country": null
-      },
-      "round": {
-        "id": 10,
-        "name": "1/2"
-      },
-      "liveMatchId": "83963-71233-17396-10",
-      "links": {
-        "match": "/tennis/v2/matches/1192621?type=wta&source=today",
-        "live": "/tennis/v2/matches/1192621/live?type=wta&source=today"
-      }
-    },
-    {
-      "id": 1156961,
-      "matchId": 1156961,
-      "date": "2026-11-06T20:15:00.000Z",
-      "startTime": "2026-11-06T20:15:00.000Z",
-      "roundId": 10,
-      "player1Id": 42230,
-      "player2Id": 39226,
-      "tournamentId": 17380,
-      "timeGame": "2026-11-06T20:15:00.000Z",
-      "seed1": "SE",
-      "seed2": "8",
-      "live": null,
-      "player1": {
-        "id": 42230,
-        "name": "Alice Tubello",
-        "countryAcr": "FRA"
-      },
-      "player2": {
-        "id": 39226,
-        "name": "Bianca Vanessa Andreescu",
-        "countryAcr": "CAN"
-      },
-      "tournament": {
-        "id": 17380,
-        "name": "Cali Open - Cali",
-        "courtId": 2,
-        "date": "2026-11-02T00:00:00.000Z",
-        "rankId": 1,
-        "countryAcr": "COL",
-        "court": {
-          "id": 2,
-          "name": "Clay"
-        },
-        "rank": {
-          "id": 1,
-          "name": "Challengers/ITF tournaments > $10K"
-        },
-        "country": null
-      },
-      "round": {
-        "id": 10,
-        "name": "1/2"
-      },
-      "liveMatchId": "42230-39226-17380-10",
-      "links": {
-        "match": "/tennis/v2/matches/1156961?type=wta&source=today",
-        "live": "/tennis/v2/matches/1156961/live?type=wta&source=today"
       }
     },
     {
@@ -1854,60 +1656,6 @@
       }
     },
     {
-      "id": 1231601,
-      "matchId": 1231601,
-      "date": null,
-      "startTime": null,
-      "roundId": 12,
-      "player1Id": 32631,
-      "player2Id": 52261,
-      "tournamentId": 17387,
-      "timeGame": null,
-      "seed1": "3",
-      "seed2": "2",
-      "live": null,
-      "player1": {
-        "id": 32631,
-        "name": "Katie Swan",
-        "countryAcr": "GBR"
-      },
-      "player2": {
-        "id": 52261,
-        "name": "Yeon Woo Ku",
-        "countryAcr": "KOR"
-      },
-      "tournament": {
-        "id": 17387,
-        "name": "W100 Incheon",
-        "courtId": 1,
-        "date": "2026-11-02T00:00:00.000Z",
-        "rankId": 1,
-        "countryAcr": "KOR",
-        "court": {
-          "id": 1,
-          "name": "Hard"
-        },
-        "rank": {
-          "id": 1,
-          "name": "Challengers/ITF tournaments > $10K"
-        },
-        "country": null
-      },
-      "h2h": {
-        "player1AllWins": 1,
-        "player2AllWins": 0
-      },
-      "round": {
-        "id": 12,
-        "name": "Final"
-      },
-      "liveMatchId": "32631-52261-17387-12",
-      "links": {
-        "match": "/tennis/v2/matches/1231601?type=wta&source=today",
-        "live": "/tennis/v2/matches/1231601/live?type=wta&source=today"
-      }
-    },
-    {
       "id": 1231836,
       "matchId": 1231836,
       "date": null,
@@ -2104,8 +1852,155 @@
         "match": "/tennis/v2/matches/1239208?type=wta&source=today",
         "live": "/tennis/v2/matches/1239208/live?type=wta&source=today"
       }
+    },
+    {
+      "id": 1244960,
+      "matchId": 1244960,
+      "date": null,
+      "startTime": null,
+      "roundId": 12,
+      "player1Id": 25216,
+      "player2Id": 26145,
+      "tournamentId": 17389,
+      "timeGame": null,
+      "seed1": "6",
+      "seed2": null,
+      "live": null,
+      "player1": {
+        "id": 25216,
+        "name": "Martha Matoula",
+        "countryAcr": "GRE"
+      },
+      "player2": {
+        "id": 26145,
+        "name": "Raluca Georgiana Serban",
+        "countryAcr": "CYP"
+      },
+      "tournament": {
+        "id": 17389,
+        "name": "W50 Heraklion",
+        "courtId": 2,
+        "date": "2026-11-02T00:00:00.000Z",
+        "rankId": 1,
+        "countryAcr": "GRE",
+        "court": {
+          "id": 2,
+          "name": "Clay"
+        },
+        "rank": {
+          "id": 1,
+          "name": "Challengers/ITF tournaments > $10K"
+        },
+        "country": null
+      },
+      "round": {
+        "id": 12,
+        "name": "Final"
+      },
+      "liveMatchId": "25216-26145-17389-12",
+      "links": {
+        "match": "/tennis/v2/matches/1244960?type=wta&source=today",
+        "live": "/tennis/v2/matches/1244960/live?type=wta&source=today"
+      }
+    },
+    {
+      "id": 1245474,
+      "matchId": 1245474,
+      "date": null,
+      "startTime": null,
+      "roundId": 12,
+      "player1Id": 90793,
+      "player2Id": 83963,
+      "tournamentId": 17396,
+      "timeGame": null,
+      "seed1": "5",
+      "seed2": "8",
+      "live": null,
+      "player1": {
+        "id": 90793,
+        "name": "Masha Lazarenko",
+        "countryAcr": "UKR"
+      },
+      "player2": {
+        "id": 83963,
+        "name": "Anastasia Lizunova",
+        "countryAcr": "RUS"
+      },
+      "tournament": {
+        "id": 17396,
+        "name": "W15 Monastir",
+        "courtId": 1,
+        "date": "2026-11-02T00:00:00.000Z",
+        "rankId": 0,
+        "countryAcr": "TUN",
+        "court": {
+          "id": 1,
+          "name": "Hard"
+        },
+        "rank": null,
+        "country": null
+      },
+      "round": {
+        "id": 12,
+        "name": "Final"
+      },
+      "liveMatchId": "90793-83963-17396-12",
+      "links": {
+        "match": "/tennis/v2/matches/1245474?type=wta&source=today",
+        "live": "/tennis/v2/matches/1245474/live?type=wta&source=today"
+      }
+    },
+    {
+      "id": 1251324,
+      "matchId": 1251324,
+      "date": null,
+      "startTime": null,
+      "roundId": 12,
+      "player1Id": 34747,
+      "player2Id": 47741,
+      "tournamentId": 17379,
+      "timeGame": null,
+      "seed1": "1",
+      "seed2": "8",
+      "live": null,
+      "player1": {
+        "id": 34747,
+        "name": "Anna Blinkova",
+        "countryAcr": "FRA"
+      },
+      "player2": {
+        "id": 47741,
+        "name": "Sofya Lansere",
+        "countryAcr": "RUS"
+      },
+      "tournament": {
+        "id": 17379,
+        "name": "Angola Ladies Open - Luanda",
+        "courtId": 1,
+        "date": "2026-11-02T00:00:00.000Z",
+        "rankId": 1,
+        "countryAcr": "ANG",
+        "court": {
+          "id": 1,
+          "name": "Hard"
+        },
+        "rank": {
+          "id": 1,
+          "name": "Challengers/ITF tournaments > $10K"
+        },
+        "country": null
+      },
+      "round": {
+        "id": 12,
+        "name": "Final"
+      },
+      "liveMatchId": "34747-47741-17379-12",
+      "links": {
+        "match": "/tennis/v2/matches/1251324?type=wta&source=today",
+        "live": "/tennis/v2/matches/1251324/live?type=wta&source=today"
+      }
     }
   ],
-  "updatedAt": "2026-11-07T14:52:03.890717+00:00",
+  "updatedAt": "2026-11-07T19:22:45.832655+00:00",
   "source": "RapidAPI tennis v2"
 }
