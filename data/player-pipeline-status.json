@@ -1,16 +1,18 @@
 {
-  "updatedAt": "2026-11-24T19:28:28.756210+00:00",
-  "fixturePlayers": 580,
-  "cached": 221,
-  "refreshedThisRun": 18,
+  "updatedAt": "2026-11-24T23:51:05.357572+00:00",
+  "fixturePlayers": 574,
+  "cached": 209,
+  "refreshedThisRun": 2,
   "h2hRefreshed": 0,
-  "requestsUsed": 20,
-  "fixtures": 290,
+  "requestsUsed": 5,
+  "fixtures": 287,
   "fixtureErrors": [],
   "requestLimit": 20,
-  "remaining": 438,
+  "remaining": 478,
   "selectionPolicy": "Upcoming 48 hours first, then next 7 days; past matches excluded",
-  "coveragePercent": 38.1,
-  "errors": [],
+  "coveragePercent": 36.41,
+  "errors": [
+    "wta:56631: API authorization/quota failure HTTP 429"
+  ],
   "note": "No guessed rankings or percentages. API match-stats endpoint is not necessarily current-season only."
 }
